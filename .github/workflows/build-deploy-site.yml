@@ -1,0 +1,72 @@
+name: gh-pages
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.4.0
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.3.1
+        with:
+          python-version: '3.9' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+
+      - name: Install dependencies with pipenv
+        run: |
+          pip install pipenv
+          cd markdown_generator
+          pipenv install --deploy --dev
+
+      - name: Build from .bib files
+        run: |
+          cd markdown_generator
+          pipenv run python pubsFromBib.py
+
+      - name: Build page with Jekyll
+        uses: actions/jekyll-build-pages@v1-beta
+
+      - name: Archive build output
+        run: tar --dereference --hard-dereference --directory _site/ -cvf artifact.tar .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2.3.1
+        with:
+          name: github-pages
+          path: ./artifact.tar
+
+  deploy:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: https://ashleycaselli.github.io/
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download Artifact
+        uses: actions/download-artifact@v2.1.0
+        with:
+          name: github-pages
+          path: artifact
+
+      - name: Unarchive Artifact
+        run: |
+          mkdir gh-pages
+          tar -xvf artifact/artifact.tar -C gh-pages/
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: gh-pages # The folder the action should deploy.
