@@ -3,3 +3,6 @@ _site/
 
 # JetBrains IDEs
 .idea/
+
+# Publications in Markdown - they are generated in the GitHub action using the .bib file
+_publications/*.md
