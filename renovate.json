@@ -3,5 +3,6 @@
     "extends": [
         "local>ashleycaselli/renovate-config:node",
         "local>ashleycaselli/renovate-config:ruby"
-    ]
+    ],
+    "includeForks": true
 }
