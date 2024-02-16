@@ -46,6 +46,7 @@ jobs:
   deploy:
     needs: [ build ]
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master' # Deploy only occurs from master branch
     environment:
       name: github-pages
       url: https://ashleycaselli.github.io/
