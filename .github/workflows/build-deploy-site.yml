@@ -38,7 +38,7 @@ jobs:
         run: tar --dereference --hard-dereference --directory _site/ -cvf artifact.tar .
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3.1.3
+        uses: actions/upload-artifact@v4.3.1
         with:
           name: github-pages
           path: ./artifact.tar
@@ -56,7 +56,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
 
       - name: Download Artifact
-        uses: actions/download-artifact@v3.0.2
+        uses: actions/download-artifact@v4.1.2
         with:
           name: github-pages
           path: artifact
