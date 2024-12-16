@@ -21,7 +21,7 @@
     "node": ">= 0.10.0"
   },
   "devDependencies": {
-    "npm-run-all2": "7.0.1",
+    "npm-run-all2": "7.0.2",
     "onchange": "7.1.0",
     "uglify-js": "3.19.3"
   },
