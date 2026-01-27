@@ -9,7 +9,7 @@
 locale                   : "en-US"
 title                    : "Ashley Caselli"
 title_separator          : "-"
-name                     : &name "Ashley Caselli"
+name                     : &name "Ashley Caselli, PhD"
 description              : &description "PhD student at UNIGE"
 url                      : https://ashleycaselli.github.io # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
@@ -82,7 +82,7 @@ analytics:
 author:
   name             : "Ashley Caselli"
   avatar           : "profile.png"
-  bio              : "Semantic Software Engineer/Knowledge Engineer at <a href='https://knowledgepixels.com/'>Knowkedge Pixels</a>"
+  bio              : "Semantic Software Engineer/Knowledge Engineer at <a href='https://knowledgepixels.com/'>Knowledge Pixels</a>"
   location         : "Geneva, Switzerland"
   employer         :
   pubmed           :
