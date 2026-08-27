@@ -1,0 +1,23 @@
+{{- /*
+  The inner-page header: name on the left, sections on the right.
+
+  The home page introduces who this is — avatar, headline, links, nanopub count.
+  Every other page has already been arrived at from somewhere, so it trades that
+  block for a single row: identity on the left, and a way back out on the right.
+*/ -}}
+{{ $p := partial "nanopub/profile.html" . }}
+{{ $name := site.Title | default $p.name }}
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="topbar-name" href="{{ "/" | relURL }}">
+      {{ partial "avatar.html" (dict
+        "asset" site.Params.avatar "url" $p.photo
+        "size" 26 "format" "jpg q88" "class" "topbar-avatar") }}
+      <span>{{ $name }}</span>
+    </a>
+    <div class="topbar-right">
+      {{ partial "site-nav.html" (dict "page" . "class" "topbar-nav") }}
+      {{ partial "theme-toggle.html" (dict "class" "theme-toggle-bar") }}
+    </div>
+  </div>
+</header>

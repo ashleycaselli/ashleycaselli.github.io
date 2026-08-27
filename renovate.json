@@ -1,8 +1,0 @@
-{
-    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "local>ashleycaselli/renovate-config:node",
-        "local>ashleycaselli/renovate-config:ruby"
-    ],
-    "includeForks": true
-}

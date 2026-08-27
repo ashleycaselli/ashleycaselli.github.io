@@ -1,0 +1,52 @@
+{{- /*
+  Site-level override of the module's partial of the same name, adding one
+  case the module does not have: `placeholder = true`.
+
+  The module requires every section to name exactly one of `query` or `view`,
+  which is right — a section with no source is almost always a mistake. But a
+  section whose query is being rewritten is the exception: the page should stay
+  in the nav, holding its place with its `empty` message, until the new query
+  exists. A placeholder section resolves to no query at all, and the module's
+  run-query.html already returns no rows for an empty queryId.
+
+  Everything else is the module's behaviour, reproduced. If `placeholder` is
+  ever added upstream, delete this file — the module's version wins again the
+  moment this one is gone.
+
+  Args: section (a section dict), label
+  Returns: dict of "queryId" and "params".
+*/ -}}
+
+{{- $sec := .section -}}
+{{- $label := .label | default $sec.id -}}
+
+{{- $queryId := "" -}}
+{{- $params := $sec.queryParams | default dict -}}
+
+{{- if $sec.placeholder -}}
+
+  {{- /* No source yet, deliberately. Nothing to resolve, nothing to fetch. */ -}}
+
+{{- else -}}
+
+  {{- if and $sec.query $sec.view -}}
+    {{- errorf "nanopub-hugo: section %q sets both query and view — pick one (a view already names its query)" $label -}}
+  {{- end -}}
+  {{- if not (or $sec.query $sec.view) -}}
+    {{- errorf "nanopub-hugo: section %q sets neither query nor view (set placeholder = true for a section with no source yet)" $label -}}
+  {{- end -}}
+
+  {{- with $sec.view -}}
+    {{- $resolved := partial "nanopub/resolve-view.html" (dict "view" . "label" $label) -}}
+    {{- $queryId = $resolved.query | default "" -}}
+    {{- with $resolved.targetField -}}
+      {{- $target := $sec.target | default "$ORCID" -}}
+      {{- $params = merge (dict . $target) $params -}}
+    {{- end -}}
+  {{- else -}}
+    {{- $queryId = partial "nanopub/resolve-query.html" (dict "query" $sec.query "label" $label) | default "" -}}
+  {{- end -}}
+
+{{- end -}}
+
+{{- return (dict "queryId" $queryId "params" $params) -}}

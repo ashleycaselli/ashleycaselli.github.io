@@ -1,0 +1,38 @@
+{{ $secs := sort (site.Params.nanopub.sections | default slice) "weight" }}
+<footer class="site-footer">
+  <details>
+    <summary>Built from {{ len $secs }} query nanopublication{{ if ne (len $secs) 1 }}s{{ end }}</summary>
+    <ul class="np-provenance">
+      {{ range $secs }}
+        {{ $sec := . }}
+        {{ $page := site.GetPage (printf "/%s" .id) }}
+        {{/* Link the nanopub whichever form the config used: the resolved
+             query id always starts with the artifact code. */}}
+        {{ $qid := "" }}{{ with $page }}{{ $qid = .Params.queryId }}{{ end }}
+        <li>
+          {{/* A placeholder section has no query to link — without this the
+               href collapses to a bare https://w3id.org/np/. */}}
+          {{ if $qid }}
+            <a href="https://w3id.org/np/{{ index (split $qid "/") 0 }}">{{ $qid }}</a>
+            {{/* When the section named a view, the query above is the one the
+                 view chose — so credit the view too. */}}
+            {{ with $sec.view }}
+              <span class="np-via">via <a href="{{ . }}">{{ index (last 1 (split . "/")) 0 }}</a></span>
+            {{ end }}
+          {{ else }}
+            <span class="np-via">{{ $sec.title | default $sec.id }} — no query yet</span>
+          {{ end }}
+          <span class="np-count">
+            {{- if eq $sec.mode "live" -}}
+              queried live
+            {{- else -}}
+              {{ with $page }}{{ len .Pages }}{{ else }}0{{ end }} result{{ with $page }}{{ if ne (len .Pages) 1 }}s{{ end }}{{ else }}s{{ end }}
+            {{- end -}}
+          </span>
+        </li>
+      {{ end }}
+    </ul>
+    <p>Queried via <a href="{{ site.Params.nanopub.endpoint }}">{{ site.Params.nanopub.endpoint }}</a>.</p>
+  </details>
+  <p>Built with <a href="https://github.com/Nanopublication/nanopub-hugo">nanopub-hugo</a>. Content comes from the nanopublication network; the site itself is static HTML.</p>
+</footer>

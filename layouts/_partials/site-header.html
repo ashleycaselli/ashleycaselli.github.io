@@ -1,0 +1,45 @@
+{{ $p := partial "nanopub/profile.html" . }}
+{{ $name := site.Title | default $p.name }}
+<header class="site-header">
+  {{ partial "avatar.html" (dict "asset" site.Params.avatar "url" $p.photo "size" 112 "format" "jpg q88") }}
+  <h1>{{ if .IsHome }}{{ $name }}{{ else }}<a href="{{ "/" | relURL }}">{{ $name }}</a>{{ end }}</h1>
+  {{ with site.Params.tagline }}<p class="tagline">{{ . }}</p>{{ end }}
+  {{/* An optional few points, for when one sentence is not the right shape.
+       An entry is either {role, org, href} — rendered "Role · Organisation" —
+       or {text}. A bare string still works and renders as-is. */}}
+  {{ with site.Params.highlights }}
+    <ul class="highlights">
+      {{- range . -}}
+        <li>
+          {{- if reflect.IsMap . -}}
+            {{- with .text -}}
+              {{ . }}
+            {{- else -}}
+              {{- $org := .org -}}
+              <span class="hl-role">{{ .role }}</span><span class="hl-sep" aria-hidden="true">·</span>
+              {{- with .href -}}
+                <a class="hl-org" href="{{ . }}">{{ $org }}</a>
+              {{- else -}}
+                <span class="hl-org">{{ $org }}</span>
+              {{- end -}}
+            {{- end -}}
+          {{- else -}}
+            {{ . }}
+          {{- end -}}
+        </li>
+      {{- end -}}
+    </ul>
+  {{ end }}
+  {{ with site.Params.links }}
+    <nav class="icon-links" aria-label="Elsewhere">
+      {{ range . }}<a href="{{ .href }}" title="{{ .label }}">{{ partial "icon.html" (dict "name" .icon) }}<span class="visually-hidden">{{ .label }}</span></a>{{ end }}
+    </nav>
+  {{ end }}
+  {{ with $p.stats.validNpCount }}
+    <p class="np-stats">
+      <strong>{{ . }}</strong> valid nanopublications
+      {{ with $p.intro }}· <a href="{{ . }}">introduction</a>{{ end }}
+      {{ with $p.pubkeyHashes }}· {{ len . }} signing key{{ if ne (len .) 1 }}s{{ end }}{{ end }}
+    </p>
+  {{ end }}
+</header>

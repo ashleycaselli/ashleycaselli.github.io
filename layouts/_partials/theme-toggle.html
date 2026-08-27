@@ -1,0 +1,20 @@
+{{- /*
+  Light/dark switch.
+
+  A <button>, not a link — it changes state rather than navigating, so it has to
+  be reachable by keyboard and announce itself. The label says what pressing it
+  will do, and is rewritten by the script when the theme changes.
+
+  Both icons ship in the markup and CSS decides which one shows, so the switch
+  is correct on first paint with no scripting involved: the icon follows the
+  same three-state rules as the palette. The button only does anything with JS,
+  which is why it is rendered hidden and the script reveals it — a dead control
+  is worse than no control.
+
+  Args: class (extra class on the button)
+*/ -}}
+<button type="button" class="theme-toggle {{ .class }}" data-theme-toggle hidden
+        aria-label="Switch to dark theme" title="Switch to dark theme">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.64 13a1 1 0 0 0-1.05-.14 8.05 8.05 0 0 1-3.37.73 8.15 8.15 0 0 1-8.14-8.1 8.6 8.6 0 0 1 .25-2A1 1 0 0 0 8 2.36a10.14 10.14 0 1 0 14 11.69 1 1 0 0 0-.36-1.05z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM3.51 4.93l1.42-1.42 2.12 2.12-1.41 1.42-2.13-2.12zm13.44 13.44l1.41-1.42 2.12 2.12-1.41 1.42-2.12-2.12zM19.07 3.51l1.42 1.42-2.12 2.12-1.42-1.41 2.12-2.13zM5.63 16.95l1.42 1.41-2.12 2.12-1.42-1.41 2.12-2.12zM23 11v2h-3v-2h3zM4 11v2H1v-2h3z"/></svg>
+</button>

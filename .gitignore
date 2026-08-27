@@ -1,8 +1,4 @@
-# Jekyll
-_site/
-
-# JetBrains IDEs
-.idea/
-
-# Publications in Markdown - they are generated in the GitHub action using the .bib file
-_publications/*.md
+.hugo_build.lock
+public/
+resources/
+.hugo_cache/
