@@ -1,0 +1,52 @@
+{{- /*
+  The header avatar.
+
+  Two sources, in order of preference:
+
+    asset  a path under assets/ — processed by Hugo: cropped square, emitted at
+           1x and 2x so it stays crisp on a retina display, and given a
+           content-hashed filename so it can be cached forever
+    url    a remote URL — the network's own profile picture, or anything else
+           configured. Left exactly as it is; a remote image cannot be
+           processed, measured, or cached by us
+
+  A configured asset that does not exist warns and falls back to the URL rather
+  than failing the build: a missing avatar is not worth a red deploy.
+
+  Args: asset, url, size (CSS pixels, default 112), format, class
+*/ -}}
+
+{{- $asset := .asset -}}
+{{- $url := .url -}}
+{{- $size := .size | default 112 -}}
+{{- /* Encoding the output as something other than the source is worth it for a
+       photo: the lossless source stays the master copy while the two derived
+       files ship as JPEG at a fraction of the bytes. Leave `format` unset to
+       keep the source format — which is what a logo, or anything with an alpha
+       channel, wants, since JPEG has no transparency. */ -}}
+{{- $format := .format -}}
+{{- $class := .class | default "avatar" -}}
+
+{{- $img := "" -}}
+{{- with $asset -}}
+  {{- $img = resources.Get . -}}
+  {{- if not $img -}}
+    {{- warnf "avatar: no file at assets/%s — falling back to the profile picture from the network" . -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if $img -}}
+  {{- /* Fill rather than Resize: the source is whatever aspect ratio the
+         photo happens to be, and the CSS circle assumes a square. */ -}}
+  {{- $spec := printf "%%dx%%d Center %s" $format | strings.TrimSuffix " " -}}
+  {{- $1x := $img.Fill (printf $spec $size $size) -}}
+  {{- $2x := $img.Fill (printf $spec (mul $size 2) (mul $size 2)) -}}
+  <img class="{{ $class }}"
+       src="{{ $1x.RelPermalink }}"
+       srcset="{{ $1x.RelPermalink }} 1x, {{ $2x.RelPermalink }} 2x"
+       alt="" width="{{ $size }}" height="{{ $size }}" />
+{{- else -}}
+  {{- with $url -}}
+    <img class="{{ $class }}" src="{{ . }}" alt="" width="{{ $size }}" height="{{ $size }}" />
+  {{- end -}}
+{{- end -}}

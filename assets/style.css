@@ -1,0 +1,729 @@
+/* nanopub-site — default theme.
+   Minimal, typographic, academic. Swap this file to reskin the whole site. */
+
+:root {
+  --fg: #16161a;
+  --fg-muted: #6b6b76;
+  --fg-faint: #9a9aa4;
+  --bg: #fffefb;
+  --bg-soft: #f6f5f1;
+  --rule: #e6e4dd;
+  --accent: #b3401f;
+  /* The shell is wide because most of this site is two-column list rows —
+     title on the left, date on the right — which read better with room. Running
+     text does not, so prose keeps its own narrower measure. */
+  --measure: 58rem;
+  --measure-prose: 40rem;
+  --topbar-h: 3.5rem;
+  --font: ui-serif, Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+  --font-ui: ui-sans-serif, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* ---------- theme ----------
+
+   Three states, not two. The palette above is light and lives on bare :root,
+   so it is what you get with no media query and no attribute. Then:
+
+     - the media block below applies dark to everyone who has not explicitly
+       chosen light, which is the OS-follows default;
+     - the [data-theme='dark'] block after it applies dark to an explicit
+       choice, so a visitor on a light OS can still pick dark.
+
+   The two dark blocks are duplicated on purpose: plain CSS has no way to share
+   a declaration list, and collapsing them into one selector list would break
+   the precedence that lets an explicit choice beat the OS in both directions.
+   Keep them in sync.
+
+   `color-scheme` tells the browser which way its own furniture — scrollbars,
+   form controls, the canvas behind the page — should go. */
+
+:root {
+  color-scheme: light dark;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --fg: #e8e6e1;
+    --fg-muted: #9e9c96;
+    --fg-faint: #6e6c67;
+    --bg: #16161a;
+    --bg-soft: #1e1e23;
+    --rule: #2c2c33;
+    --accent: #e8825f;
+  }
+}
+
+:root[data-theme='dark'] {
+  --fg: #e8e6e1;
+  --fg-muted: #9e9c96;
+  --fg-faint: #6e6c67;
+  --bg: #16161a;
+  --bg-soft: #1e1e23;
+  --rule: #2c2c33;
+  --accent: #e8825f;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 4rem 1.5rem 6rem;
+}
+
+/* The home page is a card, not a list: the wide measure exists for two-column
+   rows, and there are none here. Horizontal centring comes from .wrap's auto
+   margins and the header's centred text; this adds the vertical half. */
+.wrap-home {
+  position: relative; /* containing block for the theme toggle */
+  max-width: 40rem;
+  min-height: 100vh;
+  min-height: 100dvh; /* dvh so mobile browser chrome does not push the card */
+  /* The footer is taken out of flow below, so the only thing left to centre is
+     the card — and it centres against the container's whole content box, which
+     is the viewport. Centring it among its siblings instead (auto margins, or
+     an `auto` grid row between two spacers) centres it in whatever is left
+     *above* the footer, and that offset is what made it sit high.
+
+     `safe` keeps a card taller than the viewport reachable: it top-aligns and
+     scrolls rather than overflowing past the top edge where nothing can reach
+     it. Browsers without `safe` keep the plain `center` above. */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-content: safe center;
+
+  /* Symmetric, and both sized to clear the footer: the footer measures 92px at
+     this width and sits 1.5rem off the bottom, so 7.5rem leaves it 4px of room.
+     The top has to match or the centre stops being the centre — that is the
+     whole reason this is padding and not a bottom margin. Keeping the reserve
+     tight matters: it is dead space, and every pixel of it raises the viewport
+     height at which the card stops fitting and starts top-aligning. */
+  padding-top: 7.5rem;
+  padding-bottom: 7.5rem;
+}
+
+/* Out of flow, pinned to the bottom of the card. .wrap-home grows past 100dvh
+   once the card is taller than the viewport, and the footer rides down with it
+   rather than landing on top of anything. */
+.wrap-home .site-footer {
+  position: absolute;
+  left: 1.5rem;
+  right: 1.5rem;
+  bottom: 1.5rem;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--fg-faint);
+  text-underline-offset: 2px;
+}
+a:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- header ---------- */
+
+/* ---------- top bar (every page but home) ---------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--rule);
+  /* Opaque, not transparent: list rows scroll underneath it. */
+  background: var(--bg);
+}
+.topbar-inner {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  min-height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.topbar-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-decoration: none;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.topbar-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bg-soft);
+}
+
+.topbar-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 1.25rem;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+}
+.topbar-nav a {
+  text-decoration: none;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.topbar-nav a:hover,
+.topbar-nav a[aria-current='page'] {
+  color: var(--fg);
+}
+.topbar-nav a[aria-current='page'] {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 5px;
+}
+
+/* Below this the card plus its reserve no longer fits, so `safe center` gives
+   up and top-aligns. Keeping the full top reserve then just buys dead space
+   above a page that has to scroll anyway — so drop it and let the card start
+   near the top. The bottom keeps its reserve; the footer still has to clear. */
+@media (max-height: 43rem) {
+  .wrap-home {
+    padding-top: 2.5rem;
+  }
+}
+
+/* ---------- theme toggle ---------- */
+
+.theme-toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  background: none;
+  color: var(--fg-muted);
+  cursor: pointer;
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.theme-toggle svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  display: block;
+}
+.theme-toggle[hidden] {
+  display: none; /* [hidden] loses to display: grid without this */
+}
+
+/* Which icon shows follows exactly the same three-state logic as the palette,
+   in the same order, so the switch is right on first paint before any script
+   runs. The button offers the theme you are not in. */
+.theme-toggle .icon-sun {
+  display: none;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .theme-toggle .icon-moon {
+    display: none;
+  }
+  :root:not([data-theme='light']) .theme-toggle .icon-sun {
+    display: block;
+  }
+}
+:root[data-theme='dark'] .theme-toggle .icon-moon {
+  display: none;
+}
+:root[data-theme='dark'] .theme-toggle .icon-sun {
+  display: block;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+/* Home has no bar to sit in, so the switch takes the corner of the card. */
+.theme-toggle-corner {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+}
+
+/* The bar already supplies the space the home page gets from its top padding. */
+.wrap-inner {
+  padding-top: 2.75rem;
+}
+
+/* A sticky bar covers whatever an in-page link jumps to, so push scroll
+   targets down by its height. Set on the root rather than per-element so it
+   also applies to the browser's own "find on page" scrolling. */
+html {
+  scroll-padding-top: calc(var(--topbar-h) + 0.75rem);
+}
+
+/* ---------- home header ---------- */
+
+.site-header {
+  text-align: center;
+}
+
+.avatar {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--bg-soft);
+  margin-bottom: 1.25rem;
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+}
+.site-header h1 a {
+  text-decoration: none;
+}
+
+.tagline {
+  margin: 0.6rem auto 0;
+  max-width: 32rem;
+  color: var(--fg-muted);
+  font-size: 1rem;
+}
+
+/* Sits where .tagline would, with the same weight — it is the headline, just in
+   its other shape. No bullet glyph: the header is centred, and a leading marker
+   on centred lines leaves a ragged left edge that reads as a mistake. The line
+   breaks do the separating. */
+.highlights {
+  margin: 0.6rem auto 0;
+  padding: 0;
+  max-width: 32rem;
+  list-style: none;
+  color: var(--fg-muted);
+  font-size: 1rem;
+}
+.highlights li {
+  margin: 0.15rem 0;
+}
+/* "Role · Organisation": the separator is a real character in the markup rather
+   than a ::before, so the whole line stays one centred run with no ragged edge,
+   and it is aria-hidden so a screen reader reads "Lecturer University of
+   Geneva" instead of "Lecturer middle-dot University of Geneva". */
+.hl-sep {
+  margin: 0 0.45rem;
+  color: var(--fg-faint);
+}
+.hl-org {
+  color: var(--fg);
+}
+a.hl-org {
+  text-decoration-color: var(--fg-faint);
+}
+a.hl-org:hover {
+  color: var(--accent);
+}
+
+.icon-links {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 1.25rem;
+}
+
+.icon-links a {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: var(--fg-muted);
+}
+.icon-links a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+/* The marks are single filled paths using currentColor, so they inherit the
+   link colour and its hover state without a second rule. */
+.icon-links svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+}
+
+.np-stats {
+  margin: 1.25rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--fg-faint);
+}
+.np-stats strong {
+  color: var(--fg-muted);
+}
+
+/* ---------- nav ---------- */
+
+/* On the home page the nav is the only thing to do, so it reads as a row of
+   targets rather than a thin ruled strip. */
+.home-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 2.5rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+}
+.home-nav a {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.home-nav a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---------- sections ---------- */
+
+.intro p {
+  margin: 0 0 3rem;
+  max-width: var(--measure-prose);
+  font-size: 1.05rem;
+  color: var(--fg-muted);
+}
+
+.np-section {
+  margin: 0 0 4rem;
+}
+
+.np-section h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+  font-family: var(--font-ui);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.np-section h2 a {
+  text-decoration: none;
+}
+
+.blurb {
+  margin: 0 0 1.5rem;
+  font-size: 0.92rem;
+  color: var(--fg-faint);
+}
+
+.np-year h3 {
+  margin: 2rem 0 0.6rem;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--fg-faint);
+  letter-spacing: 0.06em;
+}
+.np-year:first-of-type h3 {
+  margin-top: 0;
+}
+
+/* ---------- lists ---------- */
+
+.np-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.np-list li {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.np-list li:last-child {
+  border-bottom: none;
+}
+
+.np-item-main {
+  min-width: 0;
+}
+
+.np-title {
+  display: block;
+}
+
+.np-body {
+  margin-top: 0.2rem;
+  /* News bodies are the only running prose here; the wide shell would stretch
+     them well past a comfortable line length. */
+  max-width: var(--measure-prose);
+  font-size: 0.94rem;
+  color: var(--fg-muted);
+}
+
+.np-link {
+  display: inline-block;
+  margin-top: 0.2rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+.np-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex: none;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+  white-space: nowrap;
+}
+
+/* the small "np" chip linking back to the source nanopublication */
+.np-prov {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  padding: 0.1rem 0.35rem;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  text-decoration: none;
+  color: var(--fg-faint);
+}
+.np-prov:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* cards variant */
+.np-cards li {
+  display: block;
+  padding: 1rem 1.1rem;
+  margin-bottom: 0.75rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--bg-soft);
+}
+.np-cards li:last-child {
+  border-bottom: 1px solid var(--rule);
+}
+.np-cards .np-meta {
+  margin-top: 0.6rem;
+}
+
+/* ---------- table ---------- */
+
+.np-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+}
+th,
+td {
+  text-align: left;
+  padding: 0.45rem 0.7rem 0.45rem 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+th {
+  color: var(--fg-faint);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+td a {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+/* ---------- states ---------- */
+
+.np-empty,
+nanopub-list p,
+nanopub-table p {
+  color: var(--fg-faint);
+  font-size: 0.92rem;
+  font-style: italic;
+}
+
+.np-more {
+  margin: 1.25rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+}
+.np-more a {
+  text-decoration: none;
+  color: var(--accent);
+}
+
+/* live components render unstyled semantic HTML — give them the same look */
+nanopub-list ul,
+nanopub-table table {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+nanopub-list li {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+nanopub-list time,
+nanopub-table time {
+  flex: none;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+}
+nanopub-list section h3 {
+  margin: 2rem 0 0.6rem;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--fg-faint);
+}
+
+/* ---------- footer ---------- */
+
+.site-footer {
+  margin-top: 5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--fg-faint);
+}
+
+.site-footer summary {
+  cursor: pointer;
+  color: var(--fg-muted);
+}
+
+.np-provenance {
+  list-style: none;
+  padding: 0;
+  margin: 0.75rem 0;
+}
+.np-provenance li {
+  padding: 0.15rem 0;
+}
+.np-provenance a {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+.np-count {
+  color: var(--fg-faint);
+}
+.np-via {
+  color: var(--fg-faint);
+}
+.np-stale {
+  color: var(--accent);
+}
+
+@media (max-width: 34rem) {
+  .wrap {
+    padding-top: 2.5rem;
+  }
+  /* No centring on a phone. The card already fills the screen, so the grid
+     would only add dead space above it and push the footer off. */
+  .wrap-home {
+    display: block;
+    min-height: 0;
+    padding-top: 2.5rem;
+    padding-bottom: 3rem;
+  }
+  /* Stay one row. Stacking name over nav was fine when the bar scrolled away,
+     but a sticky two-row bar costs a third of a small viewport — so the nav
+     scrolls sideways instead, and the name stops shrinking with it. */
+  .topbar-inner {
+    gap: 1rem;
+  }
+  .topbar-name {
+    flex: none;
+  }
+  .topbar-nav {
+    flex-wrap: nowrap;
+    gap: 1rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    /* Let the last item scroll clear of the right edge. */
+    padding-right: 0.25rem;
+  }
+  .topbar-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .np-list li {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .home-nav {
+    gap: 0.5rem;
+  }
+}

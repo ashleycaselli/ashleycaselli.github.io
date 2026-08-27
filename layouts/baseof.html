@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="{{ site.Language.Locale | default "en" }}">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ if .IsHome }}{{ site.Title }}{{ else }}{{ .Title }} — {{ site.Title }}{{ end }}</title>
+    <meta name="description" content="{{ site.Params.description }}" />
+    {{ with resources.Get "favicon.svg" }}<link rel="icon" href="{{ .RelPermalink }}" type="image/svg+xml" />{{ end }}
+    {{ with resources.Get "style.css" }}<link rel="stylesheet" href="{{ .RelPermalink }}" />{{ end }}
+
+    {{/* Inlined in <head> on purpose. An external or deferred script would run
+         after first paint, so a visitor whose OS is light but who chose dark
+         would see a white flash before the page corrected itself. */}}
+    {{ with resources.Get "theme.js" }}
+      <script>{{ .Content | safeJS }}__applyStoredTheme();</script>
+    {{ end }}
+  </head>
+  <body>
+    {{/* The home page introduces the person; every other page just needs a way
+         back. See top-bar.html. */}}
+    {{ if .IsHome }}
+      <div class="wrap wrap-home">
+        {{ partial "theme-toggle.html" (dict "class" "theme-toggle-corner") }}
+        {{/* Grouped so the card is one grid item and can be centred as a unit,
+             independently of how tall the footer happens to be. */}}
+        <div class="home-card">
+          {{ partial "site-header.html" . }}
+          {{ partial "site-nav.html" (dict "page" . "class" "home-nav") }}
+          <main>{{ block "main" . }}{{ end }}</main>
+        </div>
+        {{ partial "site-footer.html" . }}
+      </div>
+    {{ else }}
+      {{ partial "top-bar.html" . }}
+      <div class="wrap wrap-inner">
+        <main>{{ block "main" . }}{{ end }}</main>
+        {{ partial "site-footer.html" . }}
+      </div>
+    {{ end }}
+    <script>__initThemeToggle();</script>
+  </body>
+</html>

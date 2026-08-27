@@ -1,0 +1,15 @@
+{{- /*
+  The section list. Rendered twice with different chrome: centred and ruled on
+  the home page, right-aligned inside the bar everywhere else.
+
+  Args: page (the page being rendered), class (default "home-nav")
+*/ -}}
+{{ $page := .page }}
+{{ $class := .class | default "home-nav" }}
+{{ $cur := $page.RelPermalink }}
+<nav class="{{ $class }}" aria-label="Sections">
+  {{ range sort (site.Params.nanopub.sections | default slice) "weight" }}
+    {{ $url := printf "/%s/" .id | relURL }}
+    <a href="{{ $url }}"{{ if eq $cur $url }} aria-current="page"{{ end }}>{{ .title | default .id }}</a>
+  {{ end }}
+</nav>

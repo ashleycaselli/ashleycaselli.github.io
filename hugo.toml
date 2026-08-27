@@ -1,0 +1,158 @@
+baseURL = 'https://ashleycaselli.github.io/'
+locale = 'en-us'
+title = 'Ashley Caselli'
+
+disableKinds = ['rss']
+
+# ---------------------------------------------------------------------------
+# The theme comes from the published module rather than a sibling directory.
+# `hugo mod get github.com/Nanopublication/nanopub-hugo` pins the version in
+# go.mod; `hugo mod get -u` moves it forward. Needs a Go toolchain.
+# ---------------------------------------------------------------------------
+[[module.imports]]
+path = 'github.com/Nanopublication/nanopub-hugo'
+
+# ---------------------------------------------------------------------------
+# REQUIRED. resources.GetRemote refuses any media type not on this allowlist,
+# and Hugo does not let a module contribute it — see the README.
+# Do not anchor with $: responses carry a ";charset=UTF-8" suffix.
+# ---------------------------------------------------------------------------
+# The news bodies carry markup. Hugo denies text/html from a content adapter by
+# default; allowing it is a deliberate trust decision about the source space.
+# Drop this block and set `contentPlain = true` on the news section instead if
+# you would rather strip tags than trust the publisher.
+[security]
+allowContent = ['^text/html$', '^text/markdown$']
+
+[security.http]
+mediaTypes = ['^application/ld\+json', '^application/sparql-results\+json']
+
+# ---------------------------------------------------------------------------
+# Hugo caches resources.GetRemote forever by default (maxAge = -1), so an empty
+# or failed result for a query gets pinned and no plain `hugo` run ever asks
+# again — the section just stays empty. Expire it daily instead: a nightly
+# rebuild picks up new nanopubs, and a cached copy still covers a network
+# failure within the window.
+# ---------------------------------------------------------------------------
+[caches.getresource]
+maxAge = '24h'
+
+[taxonomies]
+venue = 'venues'
+role = 'roles'
+
+[params]
+description = 'Personal website, built from the nanopublication network.'
+
+# A path under assets/, processed by Hugo into 1x and 2x copies. Takes
+# precedence over the profile picture the network records for this ORCID;
+# remove it and the header falls back to whatever `get-all-user-profile-pics`
+# returns.
+avatar = 'img/avatar.png'
+
+# The home-page headline. Each entry is either a role — rendered as
+# "Role · Organisation", with the organisation linked when `href` is set — or a
+# free-form `text` line. Set `tagline` instead for a single sentence; both
+# render if both are set.
+highlights = [
+  { role = 'Knowledge/Software Engineer', org = 'Knowledge Pixels', href = 'https://knowledgepixels.com/' },
+  { role = 'Lecturer', org = 'University of Geneva', href = 'https://www.unige.ch/' },
+  { role = 'Maintainer', org = 'TopBraid SHACL API', href = 'https://github.com/TopQuadrant/shacl' },
+#  { text = 'Nanopublications, FAIR data, and the semantic web (SHACL)' },
+]
+
+# `icon` names a mark in layouts/_partials/icon.html — github, linkedin, orcid,
+# and email are drawn as SVG. Any other value is rendered as literal text, so a
+# character like '✉' still works for a link with no mark of its own.
+[[params.links]]
+label = 'Email'
+href = 'mailto:ashley@knowledgepixels.com'
+icon = 'email'
+[[params.links]]
+label = 'ORCID'
+href = 'https://orcid.org/0000-0001-8492-0354'
+icon = 'orcid'
+[[params.links]]
+label = 'GitHub'
+href = 'https://github.com/ashleycaselli'
+icon = 'github'
+# From this ORCID's own personal-URL nanopublication (get-personal-urls).
+[[params.links]]
+label = 'LinkedIn'
+href = 'https://www.linkedin.com/in/ashleycaselli/'
+icon = 'linkedin'
+
+# ---------------------------------------------------------------------------
+# Everything below is the whole content model. Connect views, get a website.
+#
+# Each section names a `view` — a view nanopublication already published in the
+# network, which says which query to run and which of its parameters carries the
+# subject. The view's own title and structural position are ignored: what a
+# section is called and where it sits is this site's business, so `title` and
+# `weight` stay here. Use `query` instead of `view` to name a query directly.
+# ---------------------------------------------------------------------------
+[params.nanopub]
+endpoint = 'https://query.knowledgepixels.com/'
+nanodash = 'https://nanodash.knowledgepixels.com/'
+orcid = 'https://orcid.org/0000-0001-8492-0354'
+verbose = true
+
+# Held open on purpose: the page stays in the nav and shows its `empty` message
+# until the replacement query is written. `placeholder` is a site-level addition
+# — see layouts/_partials/nanopub/section-source.html. To bring it back, drop
+# `placeholder`, set `view` (or `query`), and restore the fields/taxonomies.
+[[params.nanopub.sections]]
+id = 'projects'
+title = 'Projects'
+blurb = 'Spaces and projects I am involved in, and my role in each.'
+empty = 'Being rebuilt from a new query.'
+weight = 4
+placeholder = true
+#view = 'https://w3id.org/np/RAcYq4eiY7QjptsKcoUIXK73fIkh4Hgq-WTDZAJ8B4sTM/space-list-view'
+#[params.nanopub.sections.fields]
+#title = 'space_label'
+#link = 'space'
+#summary = 'roles_label_multi'
+#[params.nanopub.sections.taxonomies]
+#roles = 'roles_label_multi'
+
+
+[[params.nanopub.sections]]
+id = 'publications'
+title = 'Publications'
+blurb = 'Papers I have authored, as recorded in the nanopublication network.'
+empty = 'No papers linked to this ORCID in the network yet.'
+weight = 1
+view = 'https://w3id.org/np/RAR5QfVtTglBt4tuOYnlH6zs6MkLlYrFrMVYFrVGZOBJA/papers-for-author-view'
+[params.nanopub.sections.fields]
+title = 'paper_label'
+date = 'publication_date'
+link = 'paper'
+summary = 'journal_label'
+[params.nanopub.sections.taxonomies]
+venues = 'journal_label'
+
+# A live section: queried in the browser on every visit, never built into the
+# HTML. Use this where freshness matters more than indexability.
+[[params.nanopub.sections]]
+id = 'activity'
+title = 'Activity'
+blurb = 'Everything I have published to the network — queried live, in your browser.'
+weight = 5
+mode = 'live'
+limit = 15
+view = 'https://w3id.org/np/RAZse-1U8VD7qGWkFwLa2eu9gC6raGUL0z6bmSD711YTA/latest-nanopubs-by-user-view'
+[params.nanopub.sections.fields]
+title = 'label'
+date = 'date'
+
+[[params.nanopub.sections]]
+id = 'talks'
+title = 'Talks'
+blurb = 'Talks I have given.'
+weight = 2
+view = 'https://w3id.org/np/RAq02zzyspzoN3I-ViEWKxtQfDAsCyNswKW1fzbA-02Xc/presentations-view'
+[params.nanopub.sections.fields]
+title = 'presentation_label'
+date = 'date'
+link = 'event'

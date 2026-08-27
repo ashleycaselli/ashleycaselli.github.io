@@ -1,0 +1,29 @@
+<!--
+  AC monogram.
+
+  The letters are paths, not <text>: a favicon is rasterised at 16px by a
+  browser that may not have loaded any font we would name, and stroked geometry
+  renders identically everywhere. Stroke is heavy on purpose — the 5 units below
+  land on roughly 1.25 device pixels at 16px.
+
+  Both letters are built from one shared cap height of 27 units, measured as
+  ink rather than centreline: round caps and joins push every endpoint half a
+  stroke past its coordinate, so the A's apex sits at y=21 to put its ink at
+  18.5, and the C's radius is solved from the same target rather than picked.
+  The C carries +0.5 of overshoot, the usual allowance that stops a round letter
+  reading as short beside a flat-topped one.
+
+  Ink spans x 4.25–59.75 and y 18.25–45.75, centred in the 64 box, with a 4-unit
+  gap between the letters — anything tighter closes up when rasterised.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="AC">
+  <rect width="64" height="64" rx="14" fill="#b3401f"/>
+  <g fill="none" stroke="#fffefb" stroke-width="5"
+     stroke-linecap="round" stroke-linejoin="round">
+    <!-- A: apex 21, baseline 43, crossbar on the leg centrelines -->
+    <path d="M6.75 43 L16.25 21 L25.75 43"/>
+    <path d="M9.6 36.4 L22.9 36.4"/>
+    <!-- C: r 11.25 about (46,32), major arc, open to the right -->
+    <path d="M53.95 24.05 A 11.25 11.25 0 1 0 53.95 39.95"/>
+  </g>
+</svg>
