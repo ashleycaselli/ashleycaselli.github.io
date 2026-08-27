@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   # New nanopublications appear without a commit, so rebuild on a timer too.
   # The getresource cache is set to maxAge = '24h' in hugo.toml, which is what
   # makes a daily run actually re-ask the endpoint rather than serve the cache.
