@@ -1,4 +1,4 @@
-# ashleycaselli-hugo-nanopub-site-example
+# Ashley Caselli Personal Website
 
 A personal website whose content lives entirely in the nanopublication network,
 built with [nanopub-hugo](../nanopub-hugo).
