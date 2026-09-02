@@ -22,6 +22,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  # renovate: datasource=github-releases depName=gohugoio/hugo
   HUGO_VERSION: 0.165.0
   HUGO_CACHEDIR: ${{ github.workspace }}/.hugo_cache
 

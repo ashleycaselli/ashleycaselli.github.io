@@ -2,5 +2,30 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "local>ashleycaselli/renovate-config"
+  ],
+  "packageRules": [
+    {
+      "description": "A Hugo module is imported by hugo.toml rather than by Go code, so `hugo mod get` writes it into go.mod as indirect. Renovate leaves indirect Go dependencies alone unless told otherwise, which left the theme this whole site is built from untracked.",
+      "matchManagers": [
+        "gomod"
+      ],
+      "matchDepTypes": [
+        "indirect"
+      ],
+      "enabled": true
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track the Hugo release the deploy workflow builds the site with",
+      "managerFilePatterns": [
+        ".github/workflows/deploy.yml"
+      ],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\s+HUGO_VERSION: (?<currentValue>\\S+)"
+      ],
+      "extractVersionTemplate": "^v(?<version>.*)$"
+    }
   ]
 }
