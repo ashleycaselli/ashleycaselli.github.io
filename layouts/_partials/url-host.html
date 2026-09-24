@@ -1,0 +1,5 @@
+{{- /*
+  A URL's host, without the "www.", as a label for a link whose target is a
+  place rather than a page title. Args: the URL.
+*/ -}}
+{{- return (replaceRE `^https?://(www\.)?([^/]+).*$` "$2" .) -}}

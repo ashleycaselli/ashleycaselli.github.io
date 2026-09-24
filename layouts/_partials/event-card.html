@@ -1,0 +1,49 @@
+{{- /*
+  One event, as a card: a date badge, the title, where it is, and the event's
+  own site.
+
+  Every link here leaves the site, so every one of them opens in a new tab — the
+  card is a pointer outwards, and a visitor following one has not finished with
+  the list. The whole card is the link to the event's space: the title anchor is
+  stretched over it in CSS rather than wrapping the card in an <a>, which would
+  nest the other links inside it.
+
+  The provenance chip sits in the card's top right corner — it answers "where did
+  this come from", which is the same question on every card, so it belongs in the
+  same place on every card rather than at the end of a row whose length varies.
+  Args: an event page.
+*/ -}}
+{{- $nanodash := printf "%s/" (strings.TrimSuffix "/" (site.Params.nanopub.nanodash | default "https://nanodash.knowledgepixels.com/")) -}}
+{{- $when := partial "event-when.html" (dict "start" .Params.start "end" .Params.end) -}}
+<li class="event-card">
+  {{ with .Params.nanopub }}
+    <a class="np-prov event-np" href="{{ printf "%sexplore?id=%s" $nanodash (. | urlquery) }}" target="_blank" rel="noopener" title="{{ . }}">np</a>
+  {{ end }}
+  {{ with $when.month }}
+    <div class="event-date" aria-hidden="true">
+      <span class="event-month">{{ . }}</span>
+      <span class="event-day">{{ $when.day }}</span>
+      <span class="event-year">{{ $when.year }}</span>
+    </div>
+  {{ end }}
+  <div class="event-info">
+    <h4 class="event-title">
+      {{ with .Params.source }}
+        <a class="event-stretch" href="{{ . }}" target="_blank" rel="noopener">{{ $.Title }}</a>
+      {{ else }}
+        {{ .Title }}
+      {{ end }}
+    </h4>
+    {{ with .Params.location }}
+      <p class="event-where">
+        <span class="event-pin">{{ partial "icon.html" (dict "name" "pin") }}</span>
+        <a href="{{ . }}" target="_blank" rel="noopener">{{ partial "url-host.html" . }}</a>
+      </p>
+    {{ end }}
+    {{ with .Params.altId }}
+      <div class="np-meta">
+        <a class="event-link" href="{{ . }}" target="_blank" rel="noopener">{{ partial "url-host.html" . }} ↗</a>
+      </div>
+    {{ end }}
+  </div>
+</li>

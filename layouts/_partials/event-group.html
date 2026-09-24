@@ -1,0 +1,18 @@
+{{- /*
+  One group of events on the Events page — the heading, the blurb, and the
+  cards, or the group's `empty` message when the view returned nothing.
+
+  Args: page (the Events section page), group (the group id), config (the
+  group's entry in params.nanopub.sections.events)
+*/ -}}
+{{- $config := .config -}}
+{{- $pages := where .page.Pages "Params.group" .group -}}
+<section class="event-group">
+  <h3>{{ $config.title | default .group }}</h3>
+  {{ with $config.blurb }}<p class="blurb">{{ . }}</p>{{ end }}
+  {{ with $pages.ByDate }}
+    <ul class="events-list">{{ range . }}{{ partial "event-card.html" . }}{{ end }}</ul>
+  {{ else }}
+    <p class="np-empty">{{ $config.empty | default "Nothing here yet." }}</p>
+  {{ end }}
+</section>

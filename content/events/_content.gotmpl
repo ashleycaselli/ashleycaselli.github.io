@@ -1,0 +1,151 @@
+{{- /*
+  The Events section.
+
+  The module's adapter builds one section from one view. This page is two
+  views — the events I plan to attend and the ones I am only watching — stacked
+  on one page, so it is built here instead and the section carries
+  `sourcedLocally = true` to keep the module from fetching the same rows again.
+
+  Two things beyond the module's behaviour happen here:
+
+    - Both groups are normalised to the same shape. One view dates an event with
+      a single day, the other with a "start – end" literal; a card should not
+      have to know which, so both become `start` and `end` params.
+    - An event whose label the view does not carry gets one looked up from the
+      event itself. Without that the row has no title, and a row with no title
+      is dropped — which today would empty the Attending group completely.
+    - Where an event is, and what it calls itself elsewhere, come from its own
+      space declaration rather than from either view — see the section's `facts`.
+*/ -}}
+
+{{- $ctx := . -}}
+{{- $np := site.Params.nanopub -}}
+{{- $sec := partial "nanopub/section-config.html" (dict "id" "events") -}}
+
+{{- $seen := dict -}}
+
+{{- range $group := $sec.groups -}}
+  {{- $config := index $sec $group -}}
+  {{- $label := printf "events/%s" $group -}}
+
+  {{- if not $config -}}
+    {{- errorf "events: params.nanopub.sections.events has no %q group" $group -}}
+  {{- end -}}
+
+  {{- $fields := $config.fields | default dict -}}
+  {{- $source := partial "nanopub/section-source.html" (dict
+    "section" $config
+    "label" $label
+    "localAdapter" true
+  ) -}}
+  {{- $rows := partial "nanopub/run-query.html" (dict
+    "endpoint" $np.endpoint
+    "queryId" $source.queryId
+    "params" $source.params
+    "orcid" $np.orcid
+    "pubkeys" $np.pubkeys
+    "label" $label
+  ) -}}
+
+  {{- /* Rows are put in a fixed order — by nanopub URI, which is unique and
+         stable — before they are given paths, so two events that share a title
+         get the same suffix from one build to the next. */ -}}
+  {{- $items := slice -}}
+  {{- range $i, $row := $rows -}}
+    {{- $key := printf "%06d" $i -}}
+    {{- with $row.np -}}{{- $key = . -}}{{- end -}}
+    {{- $items = $items | append (dict "key" $key "row" $row) -}}
+  {{- end -}}
+
+  {{- $added := 0 -}}
+
+  {{- range $idx, $item := sort $items "key" -}}
+    {{- $row := $item.row -}}
+    {{- $event := "" -}}
+    {{- with $fields.link -}}{{- with index $row . -}}{{- $event = . -}}{{- end -}}{{- end -}}
+
+    {{- $title := "" -}}
+    {{- with $fields.title -}}{{- with index $row . -}}{{- $title = . -}}{{- end -}}{{- end -}}
+    {{- if and (not $title) $event -}}
+      {{- $title = partial "nanopub/thing-label.html" (dict "thing" $event "label" $label) -}}
+    {{- end -}}
+
+    {{- if $title -}}
+      {{- $start := "" -}}
+      {{- $end := "" -}}
+      {{- with $fields.date -}}
+        {{- with index $row . -}}{{- $start = partial "nanopub/date.html" . -}}{{- end -}}
+      {{- end -}}
+      {{- with $fields.dateRange -}}
+        {{- with index $row . -}}
+          {{- $parts := split . "–" -}}
+          {{- $start = partial "nanopub/date.html" (trim (index $parts 0) " ") -}}
+          {{- if gt (len $parts) 1 -}}
+            {{- $end = partial "nanopub/date.html" (trim (index $parts 1) " ") -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+
+      {{- /* Two events with the same name — the same conference watched and
+             attended, say — would otherwise claim one permalink. The nanopub
+             code separates them; the loop index is the fallback for a row that
+             somehow arrived without one. */ -}}
+      {{- $slug := partial "nanopub/slug.html" $title -}}
+      {{- if index $seen $slug -}}
+        {{- $suffix := printf "%d" $idx -}}
+        {{- with $row.np -}}
+          {{- $suffix = lower (substr (index (last 1 (split . "/")) 0) 0 10) -}}
+        {{- end -}}
+        {{- $slug = printf "%s-%s" $slug $suffix -}}
+      {{- end -}}
+      {{- $seen = merge $seen (dict $slug true) -}}
+
+      {{- $params := dict
+        "row" $row
+        "section" "events"
+        "group" $group
+        "queryId" $source.queryId
+        "start" $start
+        "end" $end
+      -}}
+      {{- with $row.np -}}{{- $params = merge $params (dict "nanopub" .) -}}{{- end -}}
+      {{- with $event -}}{{- $params = merge $params (dict "source" .) -}}{{- end -}}
+      {{- range $name, $fact := ($sec.facts | default dict) -}}
+        {{- with partial "nanopub/row-fact.html" (dict "fact" $fact "row" $row "label" $label) -}}
+          {{- $params = merge $params (dict $name .) -}}
+        {{- end -}}
+      {{- end -}}
+
+      {{- /* An event is a card, not a page of its own: everything the network
+             records about it is on the card, and the card links out to the
+             event's space for the rest. The page still exists so the section
+             layout can group and sort these the way Hugo sorts anything else —
+             `render` keeps it off disk and out of the sitemap, `list` keeps it
+             in this section's own .Pages. */ -}}
+      {{- $page := dict
+        "kind" "page"
+        "path" $slug
+        "title" $title
+        "params" $params
+        "build" (dict "render" false "list" "local")
+      -}}
+
+      {{- /* An undated event still belongs on the page, so a literal that will
+             not parse leaves the page undated rather than failing the build. */ -}}
+      {{- with $start -}}
+        {{- with try (time.AsTime .) -}}
+          {{- with .Value -}}
+            {{- $page = merge $page (dict "dates" (dict "date" .)) -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+
+      {{- $ctx.AddPage $page -}}
+      {{- $added = add $added 1 -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- if $np.verbose -}}
+    {{- warnf "events: %s → %d page(s) from %s" $group $added $source.queryId -}}
+  {{- end -}}
+{{- end -}}

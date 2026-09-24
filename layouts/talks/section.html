@@ -1,0 +1,22 @@
+{{- /*
+  The Talks page: a list per year, most recent first, with the event a talk was
+  given at above its title. The pages come from content/talks/_content.gotmpl
+  and are never written to disk — this is the only page they appear on.
+*/ -}}
+{{ define "main" }}
+  <section class="np-section np-talks">
+    <h2>{{ .Title }}</h2>
+    {{ with .Params.blurb }}<p class="blurb">{{ . }}</p>{{ end }}
+    {{ $talks := .Pages.ByDate.Reverse }}
+    {{ with $talks }}
+      {{ range .GroupByDate "2006" }}
+        <section class="np-year">
+          <h3>{{ .Key }} <span class="np-year-count">{{ len .Pages }} talk{{ if ne (len .Pages) 1 }}s{{ end }}</span></h3>
+          <ul class="talks-list">{{ range .Pages }}{{ partial "talk-item.html" . }}{{ end }}</ul>
+        </section>
+      {{ end }}
+    {{ else }}
+      <p class="np-empty">{{ .Params.empty }}</p>
+    {{ end }}
+  </section>
+{{ end }}

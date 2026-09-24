@@ -3,12 +3,12 @@
 A personal website whose content lives entirely in the nanopublication network,
 built with [nanopub-hugo](../nanopub-hugo).
 
-There are no content files in this repository. Five sections are declared in
-`hugo.toml`, each one pointing at a **view nanopublication** already published in
-the network; every result row becomes a Hugo page with a permalink, a date,
-taxonomy terms, and a link back to the nanopub it came from.
+There are no written content files in this repository. Four sections are
+declared in `hugo.toml`, each one pointing at a **view nanopublication** already
+published in the network; every result row becomes a Hugo page with a permalink,
+a date, taxonomy terms, and a link back to the nanopub it came from.
 
-The current build produces **155 pages** from live data for ORCID
+The current build produces **45 pages** from live data for ORCID
 `0000-0001-8492-0354`.
 
 ## Run it
@@ -56,12 +56,14 @@ absolute local path out of a committed file.
 hugo.toml                    every section, every view — the whole content model
 go.mod / go.sum              the pinned theme version
 assets/style.css             the entire design, one file
+content/events/              the one section this site builds itself
 layouts/baseof.html          page shell
 layouts/home.html            front page: each section, capped
 layouts/section.html         a section, grouped by year when items are dated
+layouts/events/              the Events page and one event, as cards
 layouts/page.html            one nanopub
 layouts/term.html            a taxonomy term (venue, role)
-layouts/_partials/           header, nav, footer, list item
+layouts/_partials/           header, nav, footer, list item, event card
 ```
 
 ## The sections
@@ -69,13 +71,89 @@ layouts/_partials/           header, nav, footer, list item
 | Section | View | Query it resolves to | Mode |
 | --- | --- | --- | --- |
 | Publications | `papers-for-author-view` | `get-papers-for-author` | static |
-| Talks & Events | `presentations-view` | `get-presentations-by-speaker` | static |
-| News | `news-list-view` | `get-news-content` | static |
-| Projects | `space-list-view` | `get-spaces-and-roles-for-user` | static |
+| Talks | `presentations-view` | `get-presentations-by-speaker` | static |
+| Events — Attending | `planned-event-attendance-view` | `get-future-planned-event-attendances` | static |
+| Events — Interested in | `observed-events-view` | `get-observed-events-of-user` | static |
 | Activity | `latest-nanopubs-by-user-view` | `get-latest-nanopubs-by-user` | **live** |
 
 Activity is queried in the visitor's browser by `<nanopub-list>` rather than at
 build time, so it is always current without a rebuild.
+
+Events and Talks are built by this site rather than by the module, because two
+of the rows in that table land on one page and because both pages need more than
+their views return. Events first, then Talks.
+
+## Events
+
+Two of the rows in that table land on one page. `content/events/_content.gotmpl` runs both views,
+normalises them — one dates an event with a single day, the other with a
+"start – end" literal, and a card should not have to know which — and tags each
+page with the group it belongs to. The section carries `sourcedLocally = true`
+so the module's adapter leaves it alone; a site-level content adapter *adds to*
+the module's rather than replacing it, so without that flag every row would be
+published twice.
+
+It also fills gaps in the data, because neither view says much about the event
+itself — only that it was attended or watched. Three things are read from the
+event's own space declaration instead:
+
+| On the card | From | Where it is wired |
+| --- | --- | --- |
+| the title, when the view has none | `rdfs:label` | `params.nanopub.labelQuery` |
+| the venue line | `schema:location` | the section's `facts.location` |
+| the link out, below the title | `owl:sameAs` | the section's `facts.altId` |
+
+The label is the one that matters most: a row with no label has nothing to be a
+page about and is dropped, and the attendance view carries one only when the
+attendance was recorded with it — which today is never. Each fact costs one
+cached request per event, so a cold build of this section makes about thirty.
+
+A card links to the event's space as a whole — the title's link is stretched
+over the card in CSS — and the venue, the event's own site and the `np` chip
+stay separately clickable inside it. All four open in a new tab: every link on
+the card leaves the site.
+
+Events are the one section with no page per row. Everything the network records
+about an event fits on its card, and the card points at the event's own space
+for the rest, so a page under `/events/<slug>/` would be a dead end. The adapter
+still creates the pages — that is how the layout groups and sorts them — but
+marks each one `render: false` and `list: "local"`, which keeps it out of
+`public/` and out of the sitemap while leaving it in this section's `.Pages`.
+
+## Talks
+
+The presentations view returns a title and not much else. Its query asks for the
+date under `dct:date` and for the event's label inside the presentation's own
+assertion, and presentations in the network carry neither — the date is
+`schema:startDate` on the presentation, and an event's label belongs to the
+event's space declaration. So every talk was undated, which is why the page had
+no years in it, and no event name.
+
+`content/talks/_content.gotmpl` fills all three in, and the page is a list per
+year with the event a talk was given at above its title:
+
+| On the item | From | Where it is wired |
+| --- | --- | --- |
+| the date, and so the year heading | `schema:startDate` | the section's `facts.startDate` |
+| the place | `schema:location` | the section's `facts.location` |
+| the event name | `rdfs:label` on the event | `params.nanopub.labelQuery` |
+
+Talks have no page per row either, for the same reason events do not.
+
+## Facts
+
+A `facts` entry on a section names a published query, which of its parameters
+take which bindings of the row being enriched, the property whose row to pick
+out of the query's key-value answer, and the variable holding the value. One
+partial, `nanopub/row-fact.html`, serves all of them — which is why a query
+keyed on an event and a query keyed on both a nanopub and the thing it
+introduces need no code of their own.
+
+`match` is a list because both spellings of the schema.org namespace are in use
+in the network, `http://` and `https://`, and which one a nanopublication
+carries is the publisher's choice rather than a fact about the thing. A row that
+is missing a binding a query needs asks nothing at all, so a talk with no event
+simply has no event name rather than a failed lookup.
 
 ## Views, not queries
 
@@ -105,7 +183,7 @@ the nav is this site's business, so `title` and `weight` stay in `hugo.toml`.
 `fields` stays too — a view says nothing about which result variable is the
 title or the date.
 
-The five views here are the ones enabled on the corresponding Nanodash profile.
+The views here are the ones enabled on the corresponding Nanodash profile.
 To see that list, and the others available:
 
 ```sh
@@ -113,9 +191,6 @@ curl -s -G 'https://query.knowledgepixels.com/api/RAkRcVrWX-5a2wXXp6A7W7XzmubUdR
   --data-urlencode 'resource=https://orcid.org/0000-0001-8492-0354' \
   -H 'Accept: application/sparql-results+json' | jq -r '.results.bindings[] | "\(.position.value)\t\(.view_label.value)"'
 ```
-
-News is the one section whose subject is not the ORCID, so it sets `target` to
-the space instead.
 
 ## Making it yours
 
@@ -128,10 +203,12 @@ the space instead.
    Use `query` instead of `view` to point at a query directly. See the
    [nanopub-hugo README](../nanopub-hugo/README.md) for the field reference.
 
-Note the four settings this site must carry itself, because Hugo does not let a
-module contribute them: `[security.http] mediaTypes`, `[security] allowContent`
-(only because the News section renders HTML bodies), `[taxonomies]`, and
-`[caches.getresource] maxAge`. All four are commented in `hugo.toml`.
+Note the settings this site must carry itself, because Hugo does not let a
+module contribute them: `[security.http] mediaTypes`, `[security] allowContent`,
+`[taxonomies]`, and `[caches.getresource] maxAge`. One more is not about
+modules at all: `buildFuture`. Hugo leaves future-dated pages out of a build
+unless it is set, and an events page is nothing but future-dated pages. All of
+them are commented in `hugo.toml`.
 
 ### If a section renders empty
 
