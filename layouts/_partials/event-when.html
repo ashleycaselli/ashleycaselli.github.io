@@ -1,0 +1,61 @@
+{{- /*
+  Turns an event's start and end into the pieces a card shows.
+
+  The badge is deliberately terse — "Oct" over "20–22" — so the long form under
+  the title is what carries the year and the month names in full. An event that
+  spans a month or a year boundary widens the badge rather than lying about it.
+
+  Args: start, end (both "YYYY-MM-DD"; end may be empty for a one-day event)
+  Returns: dict of "month", "day", "year" and "long", all "" if start is unusable.
+*/ -}}
+
+{{- $blank := dict "month" "" "day" "" "year" "" "long" "" -}}
+{{- $result := $blank -}}
+
+{{- with .start -}}
+  {{- with try (time.AsTime .) -}}
+    {{- with .Value -}}
+      {{- $s := . -}}
+      {{- $e := $s -}}
+      {{- with $.end -}}
+        {{- with try (time.AsTime .) -}}
+          {{- with .Value -}}{{- $e = . -}}{{- end -}}
+        {{- end -}}
+      {{- end -}}
+
+      {{- $sameDay := eq ($s.Format "2006-01-02") ($e.Format "2006-01-02") -}}
+      {{- $sameMonth := eq ($s.Format "2006-01") ($e.Format "2006-01") -}}
+      {{- $sameYear := eq ($s.Format "2006") ($e.Format "2006") -}}
+
+      {{- $month := $s.Format "Jan" -}}
+      {{- if not $sameMonth -}}
+        {{- $month = printf "%s–%s" ($s.Format "Jan") ($e.Format "Jan") -}}
+      {{- end -}}
+
+      {{- $day := $s.Format "2" -}}
+      {{- if not $sameDay -}}
+        {{- $day = printf "%s–%s" ($s.Format "2") ($e.Format "2") -}}
+      {{- end -}}
+
+      {{- $year := $s.Format "2006" -}}
+      {{- if not $sameYear -}}
+        {{- $year = printf "%s–%s" ($s.Format "2006") ($e.Format "06") -}}
+      {{- end -}}
+
+      {{- $long := $s.Format "2 January 2006" -}}
+      {{- if not $sameDay -}}
+        {{- if $sameMonth -}}
+          {{- $long = printf "%s–%s" ($s.Format "2") ($e.Format "2 January 2006") -}}
+        {{- else if $sameYear -}}
+          {{- $long = printf "%s – %s" ($s.Format "2 January") ($e.Format "2 January 2006") -}}
+        {{- else -}}
+          {{- $long = printf "%s – %s" ($s.Format "2 January 2006") ($e.Format "2 January 2006") -}}
+        {{- end -}}
+      {{- end -}}
+
+      {{- $result = dict "month" $month "day" $day "year" $year "long" $long -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $result -}}

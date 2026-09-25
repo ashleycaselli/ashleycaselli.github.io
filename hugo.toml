@@ -4,6 +4,11 @@ title = 'Ashley Caselli'
 
 disableKinds = ['rss']
 
+# An events page is a page of pages dated in the future, and Hugo leaves those
+# out of a build unless told otherwise. Without this every event that has not
+# happened yet — which is the entire point of the section — is silently dropped.
+buildFuture = true
+
 # ---------------------------------------------------------------------------
 # The theme comes from the published module rather than a sibling directory.
 # `hugo mod get github.com/Nanopublication/nanopub-hugo` pins the version in
@@ -97,25 +102,75 @@ nanodash = 'https://nanodash.knowledgepixels.com/'
 orcid = 'https://orcid.org/0000-0001-8492-0354'
 verbose = true
 
-# Held open on purpose: the page stays in the nav and shows its `empty` message
-# until the replacement query is written. `placeholder` is a site-level addition
-# — see layouts/_partials/nanopub/section-source.html. To bring it back, drop
-# `placeholder`, set `view` (or `query`), and restore the fields/taxonomies.
-[[params.nanopub.sections]]
-id = 'projects'
-title = 'Projects'
-blurb = 'Spaces and projects I am involved in, and my role in each.'
-empty = 'Being rebuilt from a new query.'
-weight = 4
-placeholder = true
-#view = 'https://w3id.org/np/RAcYq4eiY7QjptsKcoUIXK73fIkh4Hgq-WTDZAJ8B4sTM/space-list-view'
-#[params.nanopub.sections.fields]
-#title = 'space_label'
-#link = 'space'
-#summary = 'roles_label_multi'
-#[params.nanopub.sections.taxonomies]
-#roles = 'roles_label_multi'
+# A row whose label is missing has nothing to be a page about, and the
+# attendance view returns bare event URIs whenever the attendance was recorded
+# without one. This query reads the label off the event itself, which is where
+# the attendance query already goes for the start date.
+labelQuery = 'https://w3id.org/np/RAtftxAXJubB4rlm9fOvvHNVIkXvWQLC6Ag_MiV7HL0ow/get-labels-for-thing'
 
+# The Events page is the one section this site builds itself, in
+# content/events/_content.gotmpl: it merges two views into a single page —
+# the events I plan to attend and the ones I am only watching — and fills in
+# the event labels the attendance view leaves empty. `sourcedLocally` tells the
+# module's adapter to leave the section alone so the rows are not fetched
+# twice; see layouts/_partials/nanopub/section-source.html.
+[[params.nanopub.sections]]
+id = 'events'
+title = 'Events'
+blurb = 'Conferences and meetings, taken straight from the network.'
+empty = 'Nothing coming up.'
+weight = 4
+sourcedLocally = true
+# Named here rather than in the templates: the adapter, the page layout and the
+# footer's provenance list all walk the same groups, in this order.
+groups = ['attending', 'interested']
+
+# Each group names its own view. `fields.date` carries a single day;
+# `fields.dateRange` carries a "start – end" literal, which is what the
+# observed-events query returns. A group sets one or the other.
+[params.nanopub.sections.attending]
+title = 'Attending'
+blurb = 'Where you can find me next.'
+empty = 'No upcoming events planned.'
+view = 'https://w3id.org/np/RA8Qth9x0Tl-GJGxFULfqNMyXJ7yorqdXBXH5Xek4ZxY8'
+[params.nanopub.sections.attending.fields]
+title = 'event_label'
+link = 'event'
+date = 'date'
+
+[params.nanopub.sections.interested]
+title = 'Interested in'
+blurb = 'Events I am keeping an eye on.'
+empty = 'Nothing on the radar right now.'
+view = 'https://w3id.org/np/RArRGdhEEEri5eIPUX-yGoRLdxPm4MJPlFjqIrCdoqcHY'
+[params.nanopub.sections.interested.fields]
+title = 'event_label'
+link = 'event'
+dateRange = 'dates'
+
+
+# Facts a view does not carry, read from the thing's own nanopublication. Each
+# one names a published query, which of its parameters take which binding of the
+# row being enriched, the property whose row to pick out of the query's
+# key-value answer, and the variable holding the value. Adding a fact is a block
+# here and a line in the template — no template logic.
+[params.nanopub.sections.facts.location]
+query = 'https://w3id.org/np/RA2Oiy7ht4NcXjJr8mb-hgpVc1vwmUFyaypoll-XvPKso/get-time-limited-space-info'
+match = ['http://schema.org/location', 'https://schema.org/location']
+matchField = 'Property_noheader'
+valueField = 'Value_multi_val_noheader'
+[params.nanopub.sections.facts.location.params]
+resource = 'event'
+
+# The event's own identifier elsewhere — its website, in practice. `get-space-info`
+# renders this one as an HTML anchor for display; row-fact.html unwraps it.
+[params.nanopub.sections.facts.altId]
+query = 'https://w3id.org/np/RAE47ty6qDLpysySankxy37Bn5RBT273lKcIbTtAdDtQo/get-space-info'
+match = ['http://www.w3.org/2002/07/owl#sameAs']
+matchField = 'Property_noheader'
+valueField = 'Value_noheader'
+[params.nanopub.sections.facts.altId.params]
+space = 'event'
 
 [[params.nanopub.sections]]
 id = 'publications'
@@ -146,13 +201,44 @@ view = 'https://w3id.org/np/RAZse-1U8VD7qGWkFwLa2eu9gC6raGUL0z6bmSD711YTA/latest
 title = 'label'
 date = 'date'
 
+# Built by content/talks/_content.gotmpl for the same reason Events is: the view
+# returns a title and little else. The query asks for the date under dct:date
+# and for the event's label inside the presentation's own assertion, and the
+# presentations in the network carry neither — the date is schema:startDate on
+# the presentation, and the label belongs to the event's space declaration. Both
+# are filled in below, which is also where the location comes from.
 [[params.nanopub.sections]]
 id = 'talks'
 title = 'Talks'
-blurb = 'Talks I have given.'
+blurb = 'Talks I have given, and the ones already scheduled.'
+empty = 'No talks linked to this ORCID in the network yet.'
 weight = 2
+sourcedLocally = true
 view = 'https://w3id.org/np/RAq02zzyspzoN3I-ViEWKxtQfDAsCyNswKW1fzbA-02Xc/presentations-view'
 [params.nanopub.sections.fields]
 title = 'presentation_label'
-date = 'date'
-link = 'event'
+link = 'presentation'
+event = 'event'
+# Not a binding of the view's own result — the name of the fact below, which the
+# adapter merges into the row before reading the fields.
+date = 'startDate'
+
+[params.nanopub.sections.facts.startDate]
+query = 'https://w3id.org/np/RAnIK9yRZrmpJjCqrmyb_Dt--89qjEO2Jkt0EJrPVINzs/get-presentation-details'
+match = ['http://schema.org/startDate', 'https://schema.org/startDate']
+matchField = 'property'
+valueField = 'value'
+[params.nanopub.sections.facts.startDate.params]
+resourceNp = 'np'
+resource = 'presentation'
+
+# A place name here, not a URL — a presentation records where it was given as
+# text, which is the one thing the event spaces do not do.
+[params.nanopub.sections.facts.location]
+query = 'https://w3id.org/np/RAnIK9yRZrmpJjCqrmyb_Dt--89qjEO2Jkt0EJrPVINzs/get-presentation-details'
+match = ['http://schema.org/location', 'https://schema.org/location']
+matchField = 'property'
+valueField = 'value'
+[params.nanopub.sections.facts.location.params]
+resourceNp = 'np'
+resource = 'presentation'

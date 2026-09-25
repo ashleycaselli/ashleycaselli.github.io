@@ -1,0 +1,29 @@
+{{- /*
+  One talk: where it was given above what it was called.
+
+  The event line comes first because it is what places the talk — a year heading
+  and an event name say when and where, and the title then says what. Both links
+  leave the site, so both open in a new tab. Args: a talk page.
+*/ -}}
+{{- $nanodash := printf "%s/" (strings.TrimSuffix "/" (site.Params.nanopub.nanodash | default "https://nanodash.knowledgepixels.com/")) -}}
+<li class="talk-item">
+  <p class="talk-meta">
+    {{ with .Params.eventLabel }}
+      {{ with $.Params.event }}
+        <a class="talk-event" href="{{ . }}" target="_blank" rel="noopener">{{ $.Params.eventLabel }}</a>
+      {{ else }}
+        <span class="talk-event">{{ . }}</span>
+      {{ end }}
+    {{ end }}
+    {{ with .Params.location }}<span class="talk-where">{{ . }}</span>{{ end }}
+    {{ with .Date }}{{ if not .IsZero }}<time datetime="{{ .Format "2006-01-02" }}">{{ .Format "2 January 2006" }}</time>{{ end }}{{ end }}
+    {{ with .Params.nanopub }}<a class="np-prov" href="{{ printf "%sexplore?id=%s" $nanodash (. | urlquery) }}" target="_blank" rel="noopener" title="{{ . }}">np</a>{{ end }}
+  </p>
+  <p class="talk-title">
+    {{ with .Params.link }}
+      <a href="{{ . }}" target="_blank" rel="noopener">{{ $.Title }}</a>
+    {{ else }}
+      {{ .Title }}
+    {{ end }}
+  </p>
+</li>

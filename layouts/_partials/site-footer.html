@@ -1,32 +1,84 @@
+{{- /*
+  The provenance list: one row per query nanopublication the site was built
+  from, not one per section. A section that declares `groups` is several views
+  on one page — the Events page is — and a list that showed only the first would
+  be understating what the page is made of.
+
+  The query is resolved here rather than read off the section page, because a
+  section this site builds itself never gets one stamped on it: the module skips
+  those, which is the whole point of `sourcedLocally`. Resolving costs nothing
+  after the first page — it is one cached fetch per view.
+*/ -}}
 {{ $secs := sort (site.Params.nanopub.sections | default slice) "weight" }}
+
+{{ $rows := slice }}
+{{ range $secs }}
+  {{ $sec := . }}
+  {{ $page := site.GetPage (printf "/%s" .id) }}
+  {{ $title := $sec.title | default $sec.id }}
+  {{ if $sec.groups }}
+    {{ range $group := $sec.groups }}
+      {{ $config := index $sec $group }}
+      {{ $source := partial "nanopub/section-source.html" (dict
+        "section" $config
+        "label" (printf "%s/%s" $sec.id $group)
+      ) }}
+      {{ $count := 0 }}
+      {{ with $page }}{{ $count = len (where .Pages "Params.group" $group) }}{{ end }}
+      {{ $rows = $rows | append (dict
+        "label" (printf "%s — %s" $title ($config.title | default $group))
+        "queryId" $source.queryId
+        "view" $config.view
+        "live" false
+        "count" $count
+      ) }}
+    {{ end }}
+  {{ else }}
+    {{ $source := partial "nanopub/section-source.html" (dict
+      "section" $sec
+      "label" $sec.id
+      "localAdapter" true
+    ) }}
+    {{ $count := 0 }}
+    {{ with $page }}{{ $count = len .Pages }}{{ end }}
+    {{ $rows = $rows | append (dict
+      "label" $title
+      "queryId" $source.queryId
+      "view" $sec.view
+      "live" (eq $sec.mode "live")
+      "count" $count
+    ) }}
+  {{ end }}
+{{ end }}
+
 <footer class="site-footer">
   <details>
-    <summary>Built from {{ len $secs }} query nanopublication{{ if ne (len $secs) 1 }}s{{ end }}</summary>
+    <summary>Built from {{ len $rows }} query nanopublication{{ if ne (len $rows) 1 }}s{{ end }}</summary>
     <ul class="np-provenance">
-      {{ range $secs }}
-        {{ $sec := . }}
-        {{ $page := site.GetPage (printf "/%s" .id) }}
-        {{/* Link the nanopub whichever form the config used: the resolved
-             query id always starts with the artifact code. */}}
-        {{ $qid := "" }}{{ with $page }}{{ $qid = .Params.queryId }}{{ end }}
+      {{ range $rows }}
         <li>
           {{/* A placeholder section has no query to link — without this the
                href collapses to a bare https://w3id.org/np/. */}}
-          {{ if $qid }}
-            <a href="https://w3id.org/np/{{ index (split $qid "/") 0 }}">{{ $qid }}</a>
+          {{ if .queryId }}
+            <a href="https://w3id.org/np/{{ index (split .queryId "/") 0 }}">{{ .queryId }}</a>
             {{/* When the section named a view, the query above is the one the
-                 view chose — so credit the view too. */}}
-            {{ with $sec.view }}
-              <span class="np-via">via <a href="{{ . }}">{{ index (last 1 (split . "/")) 0 }}</a></span>
+                 view chose — so credit the view too. A view URI ends either in
+                 a readable name or, when the nanopub names no fragment, in the
+                 artifact code itself — which is 45 characters of base64 and
+                 reads as noise at full length. */}}
+            {{ with .view }}
+              {{ $name := index (last 1 (split . "/")) 0 }}
+              {{ if findRE `^RA[A-Za-z0-9_-]{41,}$` $name }}{{ $name = printf "%s…" (substr $name 0 10) }}{{ end }}
+              <span class="np-via">via <a href="{{ . }}">{{ $name }}</a></span>
             {{ end }}
           {{ else }}
-            <span class="np-via">{{ $sec.title | default $sec.id }} — no query yet</span>
+            <span class="np-via">{{ .label }} — no query yet</span>
           {{ end }}
           <span class="np-count">
-            {{- if eq $sec.mode "live" -}}
+            {{- if .live -}}
               queried live
             {{- else -}}
-              {{ with $page }}{{ len .Pages }}{{ else }}0{{ end }} result{{ with $page }}{{ if ne (len .Pages) 1 }}s{{ end }}{{ else }}s{{ end }}
+              {{ .count }} result{{ if ne .count 1 }}s{{ end }}
             {{- end -}}
           </span>
         </li>

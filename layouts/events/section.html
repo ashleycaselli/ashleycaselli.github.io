@@ -1,0 +1,20 @@
+{{- /*
+  The Events page: two groups of cards rather than one list. The pages come from
+  content/events/_content.gotmpl, which tags each one with the group it belongs
+  to; the group's own heading, blurb and empty message stay in hugo.toml next to
+  the view they describe.
+*/ -}}
+{{ define "main" }}
+  {{ $sec := partial "nanopub/section-config.html" (dict "id" "events") }}
+  <section class="np-section np-events">
+    <h2>{{ .Title }}</h2>
+    {{ with .Params.blurb }}<p class="blurb">{{ . }}</p>{{ end }}
+    {{ range $group := $sec.groups }}
+      {{ partial "event-group.html" (dict
+        "page" $
+        "group" $group
+        "config" (index $sec $group)
+      ) }}
+    {{ end }}
+  </section>
+{{ end }}

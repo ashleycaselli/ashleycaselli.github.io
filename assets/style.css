@@ -569,6 +569,243 @@ a.hl-org:hover {
   margin-top: 0.6rem;
 }
 
+/* ---------- events ---------- */
+
+/* The Events page stacks two groups, so each one needs a heading of its own.
+   It sits a step below the section heading and a step above the year headings
+   the list sections use — same UI face, same tracking, larger and darker. */
+.np-events .event-group + .event-group {
+  margin-top: 3rem;
+}
+.np-events .event-group h3 {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-ui);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.events-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.event-card {
+  /* Containing block for the stretched title link below. */
+  position: relative;
+  display: flex;
+  gap: 1.1rem;
+  align-items: flex-start;
+  /* Right side is wider than the left: the provenance chip is pinned in that
+     corner, and a title running under it would be unreadable. */
+  padding: 1rem 3rem 1rem 1.1rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--bg-soft);
+}
+.event-card:hover {
+  border-color: var(--accent);
+}
+
+/* Fixed width rather than fitted: the badges line up down the page, and a
+   three-day range does not shove one card's title out of step with the rest. */
+.event-date {
+  flex: none;
+  width: 4rem;
+  padding: 0.35rem 0.25rem;
+  border-radius: 5px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  text-align: center;
+  font-family: var(--font-ui);
+  line-height: 1.25;
+}
+.event-month {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.event-day {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 600;
+  /* Ranges are two numbers and a dash in a 4rem box; let them shrink rather
+     than break the badge. */
+  white-space: nowrap;
+}
+.event-year {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--fg-faint);
+}
+
+.event-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.event-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.event-title a {
+  text-decoration: none;
+}
+.event-title a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+}
+
+/* The whole card opens the event's space. Stretching the title's own link over
+   the card, rather than wrapping the card in an <a>, keeps the venue and site
+   links as separate links — an <a> inside an <a> is not valid HTML and browsers
+   unnest it. The two inner links are lifted back above the stretched layer. */
+.event-stretch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+}
+.event-where a,
+.event-card .np-meta a {
+  position: relative;
+  z-index: 1;
+}
+
+/* Same corner on every card, whatever the card holds. Absolute already lifts it
+   above the stretched link; z-index makes that independent of source order. */
+.event-np {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.9rem;
+  z-index: 1;
+}
+
+/* Where the event is. The network records a venue as a link rather than a
+   place name, so the pin is what says "this is a location" — without it the
+   row is just another URL. */
+.event-where {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.2rem 0 0;
+  font-family: var(--font-ui);
+  font-size: 0.82rem;
+  color: var(--fg-muted);
+}
+.event-pin {
+  display: inline-flex;
+  flex: none;
+  color: var(--fg-faint);
+}
+.event-pin svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  display: block;
+}
+.event-where a {
+  text-decoration: none;
+}
+.event-where a:hover {
+  text-decoration: underline;
+}
+
+.event-card .np-meta {
+  margin-top: 0.55rem;
+  /* The card is the only place these two links share a row with nothing to
+     push them apart, so let them wrap on a narrow screen. */
+  flex-wrap: wrap;
+  white-space: normal;
+}
+.event-link {
+  text-decoration: none;
+  color: var(--accent);
+}
+
+/* ---------- talks ---------- */
+
+/* Event, place and date on one muted line, the title under it. The talk's own
+   name is the thing to read; the line above is what places it. */
+.talks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.talk-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.talk-item:last-child {
+  border-bottom: none;
+}
+
+.talk-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  /* The separators are drawn in CSS rather than typed into the markup: which
+     parts of this line exist varies per talk, and a middot in the template
+     would strand itself whenever the part after it is missing. */
+  gap: 0 0.55rem;
+  margin: 0 0 0.1rem;
+  font-family: var(--font-ui);
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+}
+.talk-meta > * + *::before {
+  content: '·';
+  margin-right: 0.55rem;
+  color: var(--rule);
+}
+.talk-meta > .np-prov::before {
+  content: none;
+}
+.talk-event {
+  color: var(--fg-muted);
+  text-decoration: none;
+}
+.talk-event:hover {
+  color: var(--accent);
+}
+
+.talk-title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+.talk-title a {
+  text-decoration: none;
+}
+.talk-title a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+}
+
+/* The year headings already exist for the list sections, sized to be a quiet
+   divider in a list of titles. Here they are the only structure on the page, so
+   they carry more weight — and a count, which is why the section is worth
+   skimming by year at all. */
+.np-talks .np-year h3 {
+  margin-top: 2.25rem;
+  font-size: 1rem;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+}
+.np-year-count {
+  margin-left: 0.4rem;
+  font-weight: 400;
+  color: var(--fg-faint);
+}
+
 /* ---------- table ---------- */
 
 .np-scroll {
@@ -722,6 +959,15 @@ nanopub-list section h3 {
   .np-list li {
     flex-direction: column;
     gap: 0.25rem;
+  }
+  /* The badge keeps its row — stacking it above the title would cost a line
+     and gain nothing — but it gives up some of its width to the title. */
+  .event-card {
+    gap: 0.85rem;
+    padding: 0.9rem;
+  }
+  .event-date {
+    width: 3.4rem;
   }
   .home-nav {
     gap: 0.5rem;

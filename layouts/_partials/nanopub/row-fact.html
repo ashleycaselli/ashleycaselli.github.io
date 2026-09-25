@@ -1,0 +1,61 @@
+{{- /*
+  One fact about a row's subject, out of a key-value query.
+
+  The detail queries in the network answer in rows of "property, value" meant
+  for a table, so picking a fact means finding the row whose property is the one
+  asked for. A value written for display can arrive wrapped in an anchor; the
+  href is the fact, so it is unwrapped rather than rendered as markup.
+
+  A fact's `params` maps the query's own parameters to bindings of the row being
+  enriched. That is what lets one partial serve a query keyed on an event and a
+  query keyed on both a nanopub and the thing it introduces — and it means a row
+  missing a binding asks nothing rather than asking with a hole in it.
+
+  `match` takes a list because both spellings of the schema.org namespace are in
+  use in the network — http:// and https:// — and which one a nanopublication
+  carries is the publisher's choice, not a fact about the thing.
+
+  Args: fact (an entry from a section's `facts`), row (a query result row), label
+  Returns: the value, or "" when the network records none.
+*/ -}}
+
+{{- $np := site.Params.nanopub -}}
+{{- $fact := .fact -}}
+{{- $row := .row -}}
+{{- $found := "" -}}
+
+{{- $params := dict -}}
+{{- $answerable := true -}}
+{{- range $param, $binding := ($fact.params | default dict) -}}
+  {{- $value := "" -}}
+  {{- with index $row $binding -}}{{- $value = . -}}{{- end -}}
+  {{- if $value -}}
+    {{- $params = merge $params (dict $param $value) -}}
+  {{- else -}}
+    {{- $answerable = false -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if and $answerable $fact.query -}}
+  {{- $queryId := partial "nanopub/resolve-query.html" (dict "query" $fact.query "label" $.label) -}}
+  {{- $rows := partial "nanopub/run-query.html" (dict
+    "endpoint" $np.endpoint
+    "queryId" $queryId
+    "params" $params
+    "label" $.label
+  ) -}}
+  {{- $matchField := $fact.matchField | default "property" -}}
+  {{- $wanted := $fact.match -}}
+  {{- if not (reflect.IsSlice $wanted) -}}{{- $wanted = slice $wanted -}}{{- end -}}
+  {{- range $rows -}}
+    {{- if and (not $found) (in $wanted (index . $matchField)) -}}
+      {{- $value := index . $fact.valueField -}}
+      {{- with findRESubmatch `href="([^"]+)"` $value 1 -}}
+        {{- $value = index (index . 0) 1 -}}
+      {{- end -}}
+      {{- $found = $value -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $found -}}

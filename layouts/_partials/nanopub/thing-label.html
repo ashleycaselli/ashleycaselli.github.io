@@ -1,0 +1,31 @@
+{{- /*
+  The label the network records for a URI.
+
+  Rows arrive from a query that already sorts rdfs:label above the looser
+  relations, but the order is the endpoint's business rather than a promise, so
+  the rdfs:label row is picked explicitly and the first row is only a fallback.
+
+  Args: thing (the URI), label (name used in error messages)
+  Returns: the label, or "" when the network has none.
+*/ -}}
+
+{{- $np := site.Params.nanopub -}}
+{{- $found := "" -}}
+
+{{- with $np.labelQuery -}}
+  {{- $queryId := partial "nanopub/resolve-query.html" (dict "query" . "label" $.label) -}}
+  {{- $rows := partial "nanopub/run-query.html" (dict
+    "endpoint" $np.endpoint
+    "queryId" $queryId
+    "params" (dict "thing" $.thing)
+    "label" $.label
+  ) -}}
+  {{- range $rows -}}
+    {{- if and (not $found) .label -}}{{- $found = .label -}}{{- end -}}
+    {{- if eq .relation "http://www.w3.org/2000/01/rdf-schema#label" -}}
+      {{- $found = .label -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $found -}}

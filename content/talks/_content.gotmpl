@@ -1,0 +1,120 @@
+{{- /*
+  The Talks section.
+
+  Built here rather than by the module's adapter for two reasons. The page is a
+  list of talks, not a list of pages — nothing is written per talk, the same way
+  nothing is written per event — and the view's query answers with a title and
+  little else: it asks for the date under dct:date and for the event's label
+  inside the presentation's own assertion, and presentations in the network
+  carry neither. Both are filled in here.
+
+  The facts declared on the section are merged into the row before the fields
+  are read, so `fields.date` can name a fact as if the view had returned it.
+*/ -}}
+
+{{- $ctx := . -}}
+{{- $np := site.Params.nanopub -}}
+{{- $sec := partial "nanopub/section-config.html" (dict "id" "talks") -}}
+{{- $fields := $sec.fields | default dict -}}
+{{- $label := "talks" -}}
+
+{{- $source := partial "nanopub/section-source.html" (dict "section" $sec "label" $label "localAdapter" true) -}}
+{{- $rows := partial "nanopub/run-query.html" (dict
+  "endpoint" $np.endpoint
+  "queryId" $source.queryId
+  "params" $source.params
+  "orcid" $np.orcid
+  "pubkeys" $np.pubkeys
+  "label" $label
+) -}}
+
+{{- /* Rows are put in a fixed order — by nanopub URI, which is unique and
+       stable — before they are given paths, so two talks that share a title get
+       the same suffix from one build to the next. */ -}}
+{{- $items := slice -}}
+{{- range $i, $row := $rows -}}
+  {{- $key := printf "%06d" $i -}}
+  {{- with $row.np -}}{{- $key = . -}}{{- end -}}
+  {{- $items = $items | append (dict "key" $key "row" $row) -}}
+{{- end -}}
+
+{{- $seen := dict -}}
+{{- $added := 0 -}}
+
+{{- range $idx, $item := sort $items "key" -}}
+  {{- $row := $item.row -}}
+
+  {{- range $name, $fact := ($sec.facts | default dict) -}}
+    {{- with partial "nanopub/row-fact.html" (dict "fact" $fact "row" $row "label" $label) -}}
+      {{- $row = merge $row (dict $name .) -}}
+    {{- end -}}
+  {{- end -}}
+
+  {{- $title := "" -}}
+  {{- with $fields.title -}}{{- with index $row . -}}{{- $title = . -}}{{- end -}}{{- end -}}
+
+  {{- if $title -}}
+    {{- $params := dict
+      "row" $row
+      "section" "talks"
+      "queryId" $source.queryId
+    -}}
+
+    {{- range $key := slice "link" "event" -}}
+      {{- with index $fields $key -}}
+        {{- with index $row . -}}{{- $params = merge $params (dict $key .) -}}{{- end -}}
+      {{- end -}}
+    {{- end -}}
+    {{- with $row.np -}}{{- $params = merge $params (dict "nanopub" .) -}}{{- end -}}
+    {{- with $row.location -}}{{- $params = merge $params (dict "location" .) -}}{{- end -}}
+
+    {{- /* The view asks for the event's label in the wrong graph and so never
+           returns one; the label lives with the event's own space declaration. */ -}}
+    {{- $eventLabel := "" -}}
+    {{- with index $row "event_label" -}}{{- $eventLabel = . -}}{{- end -}}
+    {{- if and (not $eventLabel) $params.event -}}
+      {{- $eventLabel = partial "nanopub/thing-label.html" (dict "thing" $params.event "label" $label) -}}
+    {{- end -}}
+    {{- with $eventLabel -}}{{- $params = merge $params (dict "eventLabel" .) -}}{{- end -}}
+
+    {{- $slug := partial "nanopub/slug.html" $title -}}
+    {{- if index $seen $slug -}}
+      {{- $suffix := printf "%d" $idx -}}
+      {{- with $row.np -}}
+        {{- $suffix = lower (substr (index (last 1 (split . "/")) 0) 0 10) -}}
+      {{- end -}}
+      {{- $slug = printf "%s-%s" $slug $suffix -}}
+    {{- end -}}
+    {{- $seen = merge $seen (dict $slug true) -}}
+
+    {{- /* Same bargain as Events: the page exists so the layout can sort and
+           group these like any other Hugo pages, but nothing is written for it
+           and it stays out of the sitemap. */ -}}
+    {{- $page := dict
+      "kind" "page"
+      "path" $slug
+      "title" $title
+      "params" $params
+      "build" (dict "render" false "list" "local")
+    -}}
+
+    {{- with $fields.date -}}
+      {{- with index $row . -}}
+        {{- with partial "nanopub/date.html" . -}}
+          {{- with try (time.AsTime .) -}}
+            {{- with .Value -}}
+              {{- $page = merge $page (dict "dates" (dict "date" .)) -}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+      {{- end -}}
+    {{- end -}}
+
+    {{- $ctx.AddPage $page -}}
+    {{- $added = add $added 1 -}}
+  {{- end -}}
+{{- end -}}
+
+{{- if $np.verbose -}}
+  {{- warnf "talks: %d page(s) from %s" $added $source.queryId -}}
+{{- end -}}

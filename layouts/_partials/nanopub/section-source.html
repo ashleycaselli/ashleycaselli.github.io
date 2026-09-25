@@ -1,31 +1,46 @@
 {{- /*
-  Site-level override of the module's partial of the same name, adding one
-  case the module does not have: `placeholder = true`.
+  Site-level override of the module's partial of the same name, adding two
+  cases the module does not have: `placeholder = true` and
+  `sourcedLocally = true`.
 
   The module requires every section to name exactly one of `query` or `view`,
-  which is right — a section with no source is almost always a mistake. But a
-  section whose query is being rewritten is the exception: the page should stay
-  in the nav, holding its place with its `empty` message, until the new query
-  exists. A placeholder section resolves to no query at all, and the module's
-  run-query.html already returns no rows for an empty queryId.
+  which is right — a section with no source is almost always a mistake. Two
+  sections here are the exception, and both resolve to no query at all, which
+  the module's run-query.html already handles by returning no rows:
 
-  Everything else is the module's behaviour, reproduced. If `placeholder` is
-  ever added upstream, delete this file — the module's version wins again the
-  moment this one is gone.
+    placeholder      the query is being rewritten. The page should stay in the
+                     nav, holding its place with its `empty` message, until the
+                     new query exists.
+    sourcedLocally   a content adapter in this site builds the section instead
+                     — see content/events/ and content/talks/. Without this the
+                     module's adapter would fetch and publish the same rows a
+                     second time, because a site-level adapter adds to the
+                     module's rather than replacing it.
 
-  Args: section (a section dict), label
+  `sourcedLocally` hides the source from the module, not from everybody: the
+  adapter that does build the section passes `localAdapter` and gets the query
+  resolved as usual. Only that one flag tells the two callers apart — they ask
+  the same partial the same question.
+
+  Everything else is the module's behaviour, reproduced. If either flag is ever
+  added upstream, delete this file — the module's version wins again the moment
+  this one is gone.
+
+  Args: section (a section dict), label, localAdapter (optional)
   Returns: dict of "queryId" and "params".
 */ -}}
 
 {{- $sec := .section -}}
 {{- $label := .label | default $sec.id -}}
+{{- $mine := .localAdapter | default false -}}
 
 {{- $queryId := "" -}}
 {{- $params := $sec.queryParams | default dict -}}
 
-{{- if $sec.placeholder -}}
+{{- if or $sec.placeholder (and $sec.sourcedLocally (not $mine)) -}}
 
-  {{- /* No source yet, deliberately. Nothing to resolve, nothing to fetch. */ -}}
+  {{- /* No source the module should act on, deliberately. Nothing to resolve,
+         nothing to fetch. */ -}}
 
 {{- else -}}
 
@@ -33,7 +48,7 @@
     {{- errorf "nanopub-hugo: section %q sets both query and view — pick one (a view already names its query)" $label -}}
   {{- end -}}
   {{- if not (or $sec.query $sec.view) -}}
-    {{- errorf "nanopub-hugo: section %q sets neither query nor view (set placeholder = true for a section with no source yet)" $label -}}
+    {{- errorf "nanopub-hugo: section %q sets neither query nor view (set placeholder = true for a section with no source yet, or sourcedLocally = true for one this site builds)" $label -}}
   {{- end -}}
 
   {{- with $sec.view -}}
