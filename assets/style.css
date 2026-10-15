@@ -548,6 +548,15 @@ a.hl-org:hover {
   text-decoration: none;
   color: var(--fg-faint);
 }
+.np-type {
+  padding: 0.05rem 0.4rem;
+  font-family: var(--font-ui);
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  color: var(--fg-muted);
+}
 .np-prov:hover {
   border-color: var(--accent);
   color: var(--accent);

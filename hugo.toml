@@ -181,10 +181,15 @@ space = 'event'
 [[params.nanopub.sections]]
 id = 'publications'
 title = 'Publications'
-blurb = 'Papers I have authored, as recorded in the nanopublication network.'
-empty = 'No papers linked to this ORCID in the network yet.'
+blurb = 'My publications and other scholarly work, as recorded in the nanopublication network.'
+empty = 'No publications linked to this ORCID in the network yet.'
 weight = 1
-view = 'https://w3id.org/np/RAR5QfVtTglBt4tuOYnlH6zs6MkLlYrFrMVYFrVGZOBJA/papers-for-author-view'
+# A query rather than the papers-for-author view: the view's query only knows
+# fabio:ScholarlyWork nanopubs with a full date, and posters carry neither — they
+# are fabio:ConferencePoster nanopubs dated by fabio:hasPublicationYear.
+query = 'https://w3id.org/np/RAXaYiKs5cP05hrg4DMkIlTNb_8yodx-Y5g7a9vqp0OjQ/get-papers-and-posters-for-author'
+[params.nanopub.sections.queryParams]
+author = '$ORCID'
 [params.nanopub.sections.fields]
 title = 'paper_label'
 date = 'publication_date'
@@ -192,6 +197,38 @@ link = 'paper'
 summary = 'journal_label'
 [params.nanopub.sections.taxonomies]
 venues = 'journal_label'
+
+# The kind of publication, read from the paper's own nanopublication and shown
+# as a tag beside each title. The details query answers for any resource
+# introduced in a nanopub, not only presentations.
+[params.nanopub.sections.facts.type]
+query = 'https://w3id.org/np/RAnIK9yRZrmpJjCqrmyb_Dt--89qjEO2Jkt0EJrPVINzs/get-presentation-details'
+match = ['http://www.w3.org/1999/02/22-rdf-syntax-ns#type']
+matchField = 'property'
+valueField = 'value'
+[params.nanopub.sections.facts.type.params]
+resourceNp = 'np'
+resource = 'paper'
+
+# Where a title leads: the PDF or archive record the publication names under
+# rdfs:seeAlso. A publication with none links to its page on this site.
+[params.nanopub.sections.facts.seeAlso]
+query = 'https://w3id.org/np/RAnIK9yRZrmpJjCqrmyb_Dt--89qjEO2Jkt0EJrPVINzs/get-presentation-details'
+match = ['http://www.w3.org/2000/01/rdf-schema#seeAlso']
+matchField = 'property'
+valueField = 'value'
+[params.nanopub.sections.facts.seeAlso.params]
+resourceNp = 'np'
+resource = 'paper'
+
+# The tag each type is shown as. A type missing here is shown by its own name,
+# split into words: fabio:BookChapter becomes "Book chapter".
+[[params.nanopub.sections.typeLabels]]
+type = 'http://purl.org/spar/fabio/ResearchPaper'
+label = 'Article'
+[[params.nanopub.sections.typeLabels]]
+type = 'http://purl.org/spar/fabio/ConferencePoster'
+label = 'Poster'
 
 # A live section: queried in the browser on every visit, never built into the
 # HTML. Use this where freshness matters more than indexability.

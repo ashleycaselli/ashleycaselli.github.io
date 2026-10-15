@@ -11,9 +11,14 @@
       {{ if (index $pages 0).Date.IsZero }}
         <ul class="np-list">{{ range .Pages.ByTitle }}{{ partial "np-item.html" . }}{{ end }}</ul>
       {{ else }}
-        {{ range $pages.GroupByDate "2006" }}
+        {{ range (where $pages "Date.IsZero" false).GroupByDate "2006" }}
           <section class="np-year"><h3>{{ .Key }}</h3>
             <ul class="np-list">{{ range .Pages }}{{ partial "np-item.html" . }}{{ end }}</ul>
+          </section>
+        {{ end }}
+        {{ with (where $pages "Date.IsZero" true).ByTitle }}
+          <section class="np-year"><h3>Undated</h3>
+            <ul class="np-list">{{ range . }}{{ partial "np-item.html" . }}{{ end }}</ul>
           </section>
         {{ end }}
       {{ end }}

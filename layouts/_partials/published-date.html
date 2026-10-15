@@ -1,0 +1,24 @@
+{{- /*
+  A page's date as a <time>, only as precise as the network recorded it.
+
+  A publication dated by year alone still gets a full date from Hugo — 1 January
+  — so the raw value the section's date field held decides the format: a bare
+  year prints as the year, anything else as the full date.
+
+  Args: a page built by a content adapter, carrying its query row
+*/ -}}
+
+{{- with .Date -}}{{- if not .IsZero -}}
+  {{- $raw := "" -}}
+  {{- with $.Params.section -}}
+    {{- $sec := partial "nanopub/section-config.html" (dict "id" .) -}}
+    {{- with $sec.fields -}}{{- with .date -}}
+      {{- $raw = printf "%v" (index ($.Params.row | default dict) . | default "") -}}
+    {{- end -}}{{- end -}}
+  {{- end -}}
+  {{- if findRE `^\d{4}$` (trim $raw " ") -}}
+    <time datetime="{{ .Format "2006" }}">{{ .Format "2006" }}</time>
+  {{- else -}}
+    <time datetime="{{ .Format "2006-01-02" }}">{{ .Format "2006-01-02" }}</time>
+  {{- end -}}
+{{- end -}}{{- end -}}

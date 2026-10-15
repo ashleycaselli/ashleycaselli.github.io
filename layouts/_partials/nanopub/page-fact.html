@@ -1,0 +1,21 @@
+{{- /*
+  One of a section's facts, looked up for a page the module's adapter built.
+
+  The module's adapter does not read `facts`, but it keeps every query binding
+  under .Params.row, which is all row-fact.html needs. So a fact declared on such
+  a section is answered here, when the page is rendered.
+
+  Args: page (a page built by a content adapter), name (the fact's key in `facts`)
+  Returns: the value, or "" when the section declares no such fact or the
+  network records none.
+*/ -}}
+
+{{- $found := "" -}}
+{{- with .page.Params.section -}}
+  {{- $sec := partial "nanopub/section-config.html" (dict "id" .) -}}
+  {{- with index ($sec.facts | default dict) $.name -}}
+    {{- $found = partial "nanopub/row-fact.html" (dict "fact" . "row" ($.page.Params.row | default dict) "label" $sec.id) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $found -}}

@@ -1,0 +1,26 @@
+{{- /*
+  The tag naming what kind of thing a list item is — "Article", "Poster".
+
+  Only a section with a `type` fact has one. The type is a URI; the section's
+  `typeLabels` names it, and an unnamed type is shown by its local name split
+  into words. The names are a list of type/label pairs rather than a table keyed
+  by URI, because Hugo would split such keys at their dots.
+
+  Args: a page built by a content adapter, carrying its query row
+  Returns: the tag text, or "" when the section or the network records no type.
+*/ -}}
+
+{{- $tag := "" -}}
+{{- with partial "nanopub/page-fact.html" (dict "page" . "name" "type") -}}
+  {{- $type := . -}}
+  {{- $sec := partial "nanopub/section-config.html" (dict "id" $.Params.section) -}}
+  {{- with where ($sec.typeLabels | default slice) "type" $type -}}
+    {{- $tag = (index . 0).label -}}
+  {{- end -}}
+  {{- if not $tag -}}
+    {{- $localName := index (last 1 (split (replace $type "#" "/") "/")) 0 -}}
+    {{- $tag = humanize (replaceRE `([a-z])([A-Z])` "$1 $2" $localName) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $tag -}}
