@@ -1,0 +1,64 @@
+{{- with site.Params.cal }}
+<script type="text/javascript">
+  (function (C, A, L) { let p = function (a, ar) { a.q.push(ar); }; let d = C.document; C.Cal = C.Cal || function () { let cal = C.Cal; let ar = arguments; if (!cal.loaded) { cal.ns = {}; cal.q = cal.q || []; d.head.appendChild(d.createElement("script")).src = A; cal.loaded = true; } if (ar[0] === L) { const api = function () { p(api, arguments); }; const namespace = ar[1]; api.q = api.q || []; if(typeof namespace === "string"){cal.ns[namespace] = cal.ns[namespace] || api;p(cal.ns[namespace], ar);p(cal, ["initNamespace", namespace]);} else p(cal, ar); return;} p(cal, ar); }; })(window, "https://app.cal.com/embed/embed.js", "init");
+  Cal.config = Cal.config || {};
+  Cal.config.forwardQueryParams = true;
+
+  (function (namespacePrefix, calLink) {
+    var buttonId = "cal-booking-button";
+
+    function activeTheme() {
+      var chosenTheme = document.documentElement.getAttribute("data-theme");
+      if (chosenTheme === "dark" || chosenTheme === "light") return chosenTheme;
+      return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+
+    function siteColor(token) {
+      return getComputedStyle(document.documentElement).getPropertyValue(token).trim();
+    }
+
+    function bookingConfig(theme) {
+      return {layout: "month_view", useSlotsViewOnSmallScreen: "true", theme: theme};
+    }
+
+    function calApiFor(theme) {
+      var namespace = namespacePrefix + "-" + theme;
+      if (!Cal.ns || !Cal.ns[namespace]) {
+        Cal("init", namespace, {origin: "https://app.cal.com"});
+        Cal.ns[namespace]("ui", {hideEventTypeDetails: false, layout: "month_view", theme: theme});
+      }
+      return Cal.ns[namespace];
+    }
+
+    function renderButton() {
+      var theme = activeTheme();
+      calApiFor(theme)("floatingButton", {
+        calLink: calLink,
+        config: bookingConfig(theme),
+        attributes: {id: buttonId},
+        hideButtonIcon: false,
+        buttonPosition: "bottom-right",
+        buttonColor: siteColor("--accent"),
+        buttonTextColor: siteColor("--bg")
+      });
+    }
+
+    function pointButtonAtActiveTheme(event) {
+      var button = document.getElementById(buttonId);
+      if (!button || event.target !== button) return;
+      var theme = activeTheme();
+      calApiFor(theme);
+      button.dataset.calNamespace = namespacePrefix + "-" + theme;
+      button.dataset.calConfig = JSON.stringify(bookingConfig(theme));
+    }
+
+    renderButton();
+    document.addEventListener("click", pointButtonAtActiveTheme, true);
+    new MutationObserver(renderButton).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+    if (window.matchMedia) {
+      var systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      if (systemThemeQuery.addEventListener) systemThemeQuery.addEventListener("change", renderButton);
+    }
+  })({{ .namespace }}, {{ .link }});
+</script>
+{{- end }}

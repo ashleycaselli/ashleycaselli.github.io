@@ -87,6 +87,12 @@ label = 'LinkedIn'
 href = 'https://www.linkedin.com/in/ashleycaselli/'
 icon = 'linkedin'
 
+# The home page's floating "book a coffee chat" button. Remove the block to
+# drop it.
+[params.cal]
+namespace = 'coffee-chat'
+link = 'ashleycaselli/coffee-chat'
+
 # ---------------------------------------------------------------------------
 # Everything below is the whole content model. Connect views, get a website.
 #
