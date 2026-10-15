@@ -1,7 +1,7 @@
 {{ define "main" }}
   {{ $nanodash := site.Params.nanopub.nanodash | default "https://nanodash.knowledgepixels.com/" }}
   <article class="np-section">
-    <h2>{{ .Title }}</h2>
+    <h2>{{ partial "display-title.html" .Title }}</h2>
     <p class="np-meta">
       {{ partial "published-date.html" . }}
       {{ with .Params.source }}<a href="{{ . }}">{{ . }}</a>{{ end }}

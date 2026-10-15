@@ -1,0 +1,17 @@
+{{- /*
+  A title as it should read on the page.
+
+  Some publishers record a title in capitals throughout. Such a title is set in
+  title case so it reads like its neighbours; any other title is left exactly as
+  recorded, since recasing it would lose acronyms like RDF and SHACL.
+
+  Args: the title string
+  Returns: the title to display.
+*/ -}}
+
+{{- $title := . -}}
+{{- if and (eq $title (upper $title)) (ne $title (lower $title)) -}}
+  {{- $title = title (lower $title) -}}
+{{- end -}}
+
+{{- return $title -}}

@@ -1,0 +1,19 @@
+{{- /*
+  Where a list item's title leads when it leaves the site.
+
+  The link the item names under rdfs:seeAlso comes first — normally the PDF.
+  Failing that, the resource it introduces, when that resource is a DOI. With
+  neither, the title stays on the site.
+
+  Args: a page built by a content adapter
+  Returns: the URL, or "" when the title should link to the page itself.
+*/ -}}
+
+{{- $link := partial "nanopub/page-fact.html" (dict "page" . "name" "seeAlso") -}}
+{{- if not $link -}}
+  {{- with .Params.source -}}
+    {{- if findRE `^https?://(dx\.)?doi\.org/` . -}}{{- $link = . -}}{{- end -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $link -}}
