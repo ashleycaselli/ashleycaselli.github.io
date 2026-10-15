@@ -183,6 +183,7 @@ id = 'publications'
 title = 'Publications'
 blurb = 'My publications and other scholarly work, as recorded in the nanopublication network.'
 empty = 'No publications linked to this ORCID in the network yet.'
+itemName = 'publication'
 weight = 1
 # A query rather than the papers-for-author view: the view's query only knows
 # fabio:ScholarlyWork nanopubs with a full date, and posters carry neither — they

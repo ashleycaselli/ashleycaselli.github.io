@@ -1,23 +1,24 @@
 {{ define "main" }}
   {{/* Adapter-generated sections have no backing file — use .Section, not .File. */}}
-  <section class="np-section">
+  <section class="np-section np-{{ .Params.section }}">
     <h2>{{ .Title }}</h2>
     {{ with .Params.blurb }}<p class="blurb">{{ . }}</p>{{ end }}
     {{ if eq .Params.mode "live" }}
       {{ partial "nanopub/live.html" (dict "section" .Params.section "groupByYear" true) }}
     {{ else }}
     {{ $pages := .Pages.ByDate.Reverse }}
+    {{ $itemName := (partial "nanopub/section-config.html" (dict "id" .Params.section)).itemName }}
     {{ if $pages }}
       {{ if (index $pages 0).Date.IsZero }}
         <ul class="np-list">{{ range .Pages.ByTitle }}{{ partial "np-item.html" . }}{{ end }}</ul>
       {{ else }}
         {{ range (where $pages "Date.IsZero" false).GroupByDate "2006" }}
-          <section class="np-year"><h3>{{ .Key }}</h3>
+          <section class="np-year"><h3>{{ .Key }} <span class="np-year-count">{{ partial "item-count.html" (dict "count" (len .Pages) "noun" $itemName) }}</span></h3>
             <ul class="np-list">{{ range .Pages }}{{ partial "np-item.html" . }}{{ end }}</ul>
           </section>
         {{ end }}
         {{ with (where $pages "Date.IsZero" true).ByTitle }}
-          <section class="np-year"><h3>Undated</h3>
+          <section class="np-year"><h3>Undated <span class="np-year-count">{{ partial "item-count.html" (dict "count" (len .) "noun" $itemName) }}</span></h3>
             <ul class="np-list">{{ range . }}{{ partial "np-item.html" . }}{{ end }}</ul>
           </section>
         {{ end }}

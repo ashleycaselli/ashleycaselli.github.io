@@ -1,0 +1,9 @@
+{{- /*
+  "4 talks", "1 publication": a count with its noun, singular for one.
+
+  Args: count, noun (singular; "item" when unset)
+  Returns: the phrase.
+*/ -}}
+
+{{- $noun := .noun | default "item" -}}
+{{- return printf "%d %s" .count (cond (eq .count 1) $noun (pluralize $noun)) -}}

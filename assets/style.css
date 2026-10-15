@@ -548,14 +548,72 @@ a.hl-org:hover {
   text-decoration: none;
   color: var(--fg-faint);
 }
-.np-type {
-  padding: 0.05rem 0.4rem;
+/* A publication reads like a talk: what it is, where it appeared and when on a
+   muted line, the title under it. */
+.np-item {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+.np-list .np-item {
+  display: block;
+}
+.np-item:last-child {
+  border-bottom: none;
+}
+.np-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.55rem;
+  margin: 0 0 0.1rem;
   font-family: var(--font-ui);
-  font-size: 0.68rem;
-  letter-spacing: 0.02em;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+}
+.np-item-meta > * + *::before {
+  content: '·';
+  margin-right: 0.55rem;
+  color: var(--rule);
+}
+.np-item-meta > .np-type + *::before,
+.np-item-meta > .np-prov::before {
+  content: none;
+}
+.np-venue {
   color: var(--fg-muted);
+}
+.np-item-title {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+.np-item-title a {
+  text-decoration: none;
+}
+.np-item-title a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+}
+.np-publications .np-year h3 {
+  margin-top: 2.25rem;
+  font-size: 1rem;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+}
+.np-publications .np-year:first-of-type h3 {
+  margin-top: 0;
+}
+
+.np-type {
+  padding: 0 0.35rem;
+  border: 1px solid var(--fg-faint);
+  border-radius: 3px;
+  color: var(--fg);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.5;
 }
 .np-prov:hover {
   border-color: var(--accent);

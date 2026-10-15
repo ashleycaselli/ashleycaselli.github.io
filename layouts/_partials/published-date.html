@@ -19,6 +19,6 @@
   {{- if findRE `^\d{4}$` (trim $raw " ") -}}
     <time datetime="{{ .Format "2006" }}">{{ .Format "2006" }}</time>
   {{- else -}}
-    <time datetime="{{ .Format "2006-01-02" }}">{{ .Format "2006-01-02" }}</time>
+    <time datetime="{{ .Format "2006-01-02" }}">{{ .Format "2 January 2006" }}</time>
   {{- end -}}
 {{- end -}}{{- end -}}

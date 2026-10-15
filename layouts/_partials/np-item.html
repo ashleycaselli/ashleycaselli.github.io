@@ -1,16 +1,16 @@
 {{- $nanodash := printf "%s/" (strings.TrimSuffix "/" (site.Params.nanopub.nanodash | default "https://nanodash.knowledgepixels.com/")) -}}
-<li>
-  <div class="np-item-main">
-    {{ with partial "nanopub/title-link.html" . }}
-      <a class="np-title" href="{{ . }}" target="_blank" rel="noopener">{{ partial "display-title.html" $.Title }}</a>
-    {{ else }}
-      <a class="np-title" href="{{ .RelPermalink }}">{{ partial "display-title.html" .Title }}</a>
-    {{ end }}
-    {{ with .Params.summary }}<div class="np-body">{{ replace . "\n" ", " }}</div>{{ end }}
-  </div>
-  <div class="np-meta">
+<li class="np-item">
+  <p class="np-item-meta">
     {{ with partial "nanopub/type-tag.html" . }}<span class="np-type">{{ . }}</span>{{ end }}
+    {{ with .Params.summary }}<span class="np-venue">{{ replace . "\n" ", " }}</span>{{ end }}
     {{ partial "published-date.html" . }}
     {{ with .Params.nanopub }}<a class="np-prov" href="{{ printf "%sexplore?id=%s" $nanodash (. | urlquery) }}" title="{{ . }}">np</a>{{ end }}
-  </div>
+  </p>
+  <p class="np-item-title">
+    {{ with partial "nanopub/title-link.html" . }}
+      <a href="{{ . }}" target="_blank" rel="noopener">{{ partial "display-title.html" $.Title }}</a>
+    {{ else }}
+      <a href="{{ .RelPermalink }}">{{ partial "display-title.html" .Title }}</a>
+    {{ end }}
+  </p>
 </li>
