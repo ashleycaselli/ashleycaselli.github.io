@@ -223,7 +223,9 @@ sourcedLocally = true
 view = 'https://w3id.org/np/RAq02zzyspzoN3I-ViEWKxtQfDAsCyNswKW1fzbA-02Xc/presentations-view'
 [params.nanopub.sections.fields]
 title = 'presentation_label'
-link = 'presentation'
+# Also the name of a fact below: the talk's recording, slides or paper. A talk
+# that records none gets an unlinked title.
+link = 'seeAlso'
 event = 'event'
 # Not a binding of the view's own result — the name of the fact below, which the
 # adapter merges into the row before reading the fields.
@@ -235,6 +237,15 @@ match = ['http://schema.org/startDate', 'https://schema.org/startDate']
 matchField = 'property'
 valueField = 'value'
 [params.nanopub.sections.facts.startDate.params]
+resourceNp = 'np'
+resource = 'presentation'
+
+[params.nanopub.sections.facts.seeAlso]
+query = 'https://w3id.org/np/RAnIK9yRZrmpJjCqrmyb_Dt--89qjEO2Jkt0EJrPVINzs/get-presentation-details'
+match = ['http://www.w3.org/2000/01/rdf-schema#seeAlso']
+matchField = 'property'
+valueField = 'value'
+[params.nanopub.sections.facts.seeAlso.params]
 resourceNp = 'np'
 resource = 'presentation'
 
