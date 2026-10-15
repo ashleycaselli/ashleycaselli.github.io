@@ -6,6 +6,8 @@
 
   (function (namespacePrefix, calLink) {
     var buttonId = "cal-booking-button";
+    var prerenderedThemes = {};
+    var pageLoaded = document.readyState === "complete";
 
     function activeTheme() {
       var chosenTheme = document.documentElement.getAttribute("data-theme");
@@ -43,6 +45,25 @@
       });
     }
 
+    function whenIdle(task) {
+      if (window.requestIdleCallback) window.requestIdleCallback(task);
+      else window.setTimeout(task, 1);
+    }
+
+    function prerenderBookingForActiveTheme() {
+      var theme = activeTheme();
+      if (!pageLoaded || prerenderedThemes[theme]) return;
+      prerenderedThemes[theme] = true;
+      whenIdle(function () {
+        calApiFor(theme)("preload", {calLink: calLink, type: "modal"});
+      });
+    }
+
+    function applySiteTheme() {
+      renderButton();
+      prerenderBookingForActiveTheme();
+    }
+
     function pointButtonAtActiveTheme(event) {
       var button = document.getElementById(buttonId);
       if (!button || event.target !== button) return;
@@ -53,11 +74,15 @@
     }
 
     renderButton();
+    window.addEventListener("load", function () {
+      pageLoaded = true;
+      prerenderBookingForActiveTheme();
+    });
     document.addEventListener("click", pointButtonAtActiveTheme, true);
-    new MutationObserver(renderButton).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+    new MutationObserver(applySiteTheme).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
     if (window.matchMedia) {
       var systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      if (systemThemeQuery.addEventListener) systemThemeQuery.addEventListener("change", renderButton);
+      if (systemThemeQuery.addEventListener) systemThemeQuery.addEventListener("change", applySiteTheme);
     }
   })({{ .namespace }}, {{ .link }});
 </script>
