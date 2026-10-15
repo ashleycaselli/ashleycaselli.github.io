@@ -115,6 +115,9 @@
           {{- $params = merge $params (dict $name .) -}}
         {{- end -}}
       {{- end -}}
+      {{- with partial "nanopub/location-label.html" (dict "location" $params.location "label" $label) -}}
+        {{- $params = merge $params (dict "locationLabel" .) -}}
+      {{- end -}}
 
       {{- /* An event is a card, not a page of its own: everything the network
              records about it is on the card, and the card links out to the

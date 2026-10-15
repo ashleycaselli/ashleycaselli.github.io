@@ -37,7 +37,7 @@
     {{ with .Params.location }}
       <p class="event-where">
         <span class="event-pin">{{ partial "icon.html" (dict "name" "pin") }}</span>
-        <a href="{{ . }}" target="_blank" rel="noopener">{{ partial "url-host.html" . }}</a>
+        <a href="{{ . }}" target="_blank" rel="noopener">{{ $.Params.locationLabel | default (partial "url-host.html" .) }}</a>
       </p>
     {{ end }}
     {{ with .Params.altId }}

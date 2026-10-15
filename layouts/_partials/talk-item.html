@@ -15,7 +15,7 @@
         <span class="talk-event">{{ . }}</span>
       {{ end }}
     {{ end }}
-    {{ with .Params.location }}<span class="talk-where">{{ . }}</span>{{ end }}
+    {{ with .Params.location }}<span class="talk-where">{{ $.Params.locationLabel | default . }}</span>{{ end }}
     {{ with .Date }}{{ if not .IsZero }}<time datetime="{{ .Format "2006-01-02" }}">{{ .Format "2 January 2006" }}</time>{{ end }}{{ end }}
     {{ with .Params.nanopub }}<a class="np-prov" href="{{ printf "%sexplore?id=%s" $nanodash (. | urlquery) }}" target="_blank" rel="noopener" title="{{ . }}">np</a>{{ end }}
   </p>

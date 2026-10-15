@@ -1,0 +1,18 @@
+{{- /*
+  The name the network records for a location given as a URI.
+
+  A location is sometimes a place name and sometimes a URI — a Wikidata entity,
+  say — and only the URI has anything to look up.
+
+  Args: location (a place name or a URI), label (name used in error messages)
+  Returns: the label, or "" when the location is not a URI or has no label.
+*/ -}}
+
+{{- $found := "" -}}
+{{- with .location -}}
+  {{- if findRE `^https?://` . -}}
+    {{- $found = partial "nanopub/thing-label.html" (dict "thing" . "label" $.label) -}}
+  {{- end -}}
+{{- end -}}
+
+{{- return $found -}}

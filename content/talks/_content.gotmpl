@@ -67,6 +67,9 @@
     {{- end -}}
     {{- with $row.np -}}{{- $params = merge $params (dict "nanopub" .) -}}{{- end -}}
     {{- with $row.location -}}{{- $params = merge $params (dict "location" .) -}}{{- end -}}
+    {{- with partial "nanopub/location-label.html" (dict "location" $params.location "label" $label) -}}
+      {{- $params = merge $params (dict "locationLabel" .) -}}
+    {{- end -}}
 
     {{- /* The view asks for the event's label in the wrong graph and so never
            returns one; the label lives with the event's own space declaration. */ -}}
