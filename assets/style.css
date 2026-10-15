@@ -833,8 +833,22 @@ a.hl-org:hover {
   margin-right: 0.55rem;
   color: var(--rule);
 }
-.talk-meta > .np-prov::before {
+.talk-meta > .np-prov::before,
+.talk-meta > .talk-upcoming + *::before {
   content: none;
+}
+/* Decided at build time: the site rebuilds nightly, so a talk stops being
+   upcoming the morning after it is given. */
+.talk-upcoming {
+  padding: 0 0.35rem;
+  border: 1px solid var(--accent);
+  border-radius: 3px;
+  color: var(--accent);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.5;
 }
 .talk-event {
   color: var(--fg-muted);

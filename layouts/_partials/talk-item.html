@@ -8,6 +8,7 @@
 {{- $nanodash := printf "%s/" (strings.TrimSuffix "/" (site.Params.nanopub.nanodash | default "https://nanodash.knowledgepixels.com/")) -}}
 <li class="talk-item">
   <p class="talk-meta">
+    {{ with .Date }}{{ if and (not .IsZero) (ge (.Format "2006-01-02") (now.Format "2006-01-02")) }}<span class="talk-upcoming">Upcoming</span>{{ end }}{{ end }}
     {{ with .Params.eventLabel }}
       {{ with $.Params.event }}
         <a class="talk-event" href="{{ . }}" target="_blank" rel="noopener">{{ $.Params.eventLabel }}</a>
