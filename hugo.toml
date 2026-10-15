@@ -186,9 +186,10 @@ empty = 'No publications linked to this ORCID in the network yet.'
 itemName = 'publication'
 weight = 1
 # A query rather than the papers-for-author view: the view's query only knows
-# fabio:ScholarlyWork nanopubs with a full date, and posters carry neither — they
-# are fabio:ConferencePoster nanopubs dated by fabio:hasPublicationYear.
-query = 'https://w3id.org/np/RAXaYiKs5cP05hrg4DMkIlTNb_8yodx-Y5g7a9vqp0OjQ/get-papers-and-posters-for-author'
+# fabio:ScholarlyWork nanopubs with a full date. This one takes any nanopub with
+# a FaBiO type — posters, book chapters, reports — and falls back to
+# fabio:hasPublicationYear when there is no dct:date.
+query = 'https://w3id.org/np/RAa_41GnXPxMGxcg-qKR4DI9fdGIrSsk128tZ0UqnB76I/get-scholarly-works-for-author'
 [params.nanopub.sections.queryParams]
 author = '$ORCID'
 [params.nanopub.sections.fields]
